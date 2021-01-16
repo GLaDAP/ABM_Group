@@ -13,7 +13,7 @@ DESCRIPTION: In this file, the agents are defined used in the model.
 """
 import random
 import heapq
-
+import numpy as np
 from mesa import Agent
 from yosemite_wolves.walker import Walker
 
@@ -47,9 +47,10 @@ class Elk(Walker):
             # Reduce energy
             self.energy -= 1
             # If there is grass available, eat it
-            print(self.model.grassgrid.out_of_bounds(self.pos))
-            this_cell = self.model.grassgrid.get_cell_list_contents([self.pos])
-            grass_patch = [obj for obj in this_cell if isinstance(obj, GrassPatch)]
+            x, y = self.pos
+            print(self.model.grassgrid.out_of_bounds((int(np.floor(x)), int(np.floor(y)))))
+            this_cell = self.model.grassgrid.get_cell_list_contents([(int(np.floor(x)), int(np.floor(y)))])
+            grass_patch = [obj for obj in this_cell if isinstance(obj, GrassPatch)][0]
             print(grass_patch)
             if grass_patch.fully_grown:
                 self.energy += self.model.elk_food_gain
