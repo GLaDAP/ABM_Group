@@ -60,7 +60,6 @@ class Pack(Walker):
         if (len(self.wolves) < self.min_pack):
             self.find_wolf_for_pack()
             logging.debug("Pack size below minimum")
-            return 
         else:
             logging.debug("Pack up to size")
 
@@ -73,31 +72,31 @@ class Pack(Walker):
             self.model.schedule.remove(elk_to_eat)
             logging.debug('Pack has eated, disbanding.')
             self.pack_eaten()
-        else:
-            for wolf in self.wolves:
-                wolf.energy -= 1
-                if (wolf.energy < 0):
-                    self.model.schedule.remove(wolf)
-                    self.wolves.remove(wolf)
-                if self.random.random() < self.model.wolf_reproduce:
-                    # Create a new wolf cub
-                    wolf.energy /= 2
-                    cub = Wolf(
-                        self.model.next_id(), self.pos, self.model, self.moore, wolf.energy
-                    )
-                    cub.pack = True
-                    self.model.schedule.add(cub)
-                    self.wolves.append(cub)
+        for wolf in self.wolves:
+            wolf.energy -= 1
+            if (wolf.energy < 0):
+                self.model.schedule.remove(wolf)
+                self.wolves.remove(wolf)
+            if self.random.random() < self.model.wolf_reproduce:
+                # Create a new wolf cub
+                wolf.energy /= 2
+                cub = Wolf(
+                    self.model.next_id(), self.pos, self.model, self.moore, wolf.energy
+                )
+                cub.pack = True
+                self.model.schedule.add(cub)
+                self.wolves.append(cub)
 
-            if (len(self.wolves) < 2):
-                for wolf in self.wolves:
-                    self.remove_from_pack(wolf)
-                self.model.grid._remove_agent(self.pos, self)
-                self.model.schedule.remove(self)
+        if (len(self.wolves) < 2):
+            logging.debug("Disbanding small pack")
+            for wolf in self.wolves:
+                self.remove_from_pack(wolf)
+            self.model.grid._remove_agent(self.pos, self)
+            self.model.schedule.remove(self)
 
 
     def filter_func_pack(self, packs):
-        return [pack for pack in packs if len(pack.wolves) < 3]
+        return [pack for pack in packs if len(pack.wolves) < self.min_pack]
 
     def filter_func_wolf(self, agents):
         return [agent for agent in agents if agent.energy < 20 and agent.pack == False]
@@ -121,15 +120,16 @@ class Pack(Walker):
     def add_pack_to_pack(self, pack):
         logging.debug("Merging packs")
         for wolf in pack.wolves:
-            self.wolves.append(wolf)
+            self.add_wolf_to_pack(wolf)
         logging.debug("Pack is now {} wolves".format(len(self.wolves)))
         self.model.schedule.remove(pack)
         self.model.grid._remove_agent(pack.pos, pack)
         
 
     def add_wolf_to_pack(self, wolf):
-        self.model.grid._remove_agent(wolf.pos, wolf)
-        wolf.pack = True
+        if (wolf.pack == False):
+            self.model.grid._remove_agent(wolf.pos, wolf)
+            wolf.pack = True
         self.wolves.append(wolf)
 
     def remove_from_pack(self, wolf):
@@ -176,7 +176,7 @@ class Wolf(Walker):
             return
         self.random_move()
         self.energy -= 1
-
+        logging.debug("Wolf info: {} {} {}".format(self.energy, self.kills, self.pack))
         # If there are elk present, eat one
         if self.energy < 20:
             """
