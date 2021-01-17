@@ -12,11 +12,13 @@ from mesa import Model
 from mesa.space import MultiGrid
 from mesa.datacollection import DataCollector
 
+from collections import defaultdict
 import logging
+import uuid
 
-from .agents import Elk, Wolf, GrassPatch
+from .agents import Elk, Wolf, GrassPatch, Pack
 from .schedule import RandomActivationByBreed
-
+from .group import Groups
 
 class WolfElk(Model):
     """
@@ -36,6 +38,8 @@ class WolfElk(Model):
     # grass = False
     grass_regrowth_time = 30
     elk_gain_from_food = 4
+
+    max_members_group = 2
 
     description = (
         "A model for simulating wolf and elk (predator-prey) ecosystem modelling."
@@ -86,7 +90,8 @@ class WolfElk(Model):
                 "Wolves": lambda m: m.schedule.get_breed_count(Wolf),
                 "Elks": lambda m: m.schedule.get_breed_count(Elk),
                 "Elks age": lambda m: m.schedule.get_average_age(Elk),
-                "Killed Elks/Wolf" : lambda m: m.schedule.get_average_kills(Wolf)
+                "Killed Elks/Wolf" : lambda m: m.schedule.get_average_kills(Wolf),
+                "Packs" : lambda m:m.schedule.get_breed_count(Pack)
             }
         )
 
@@ -126,7 +131,7 @@ class WolfElk(Model):
         self.datacollector.collect(self)
 
     def step(self):
-        self.schedule.step()
+        self.schedule.step(False)
         # collect data
         self.datacollector.collect(self)
         logging.debug(

@@ -2,7 +2,7 @@ from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.modules import CanvasGrid, ChartModule
 from mesa.visualization.UserParam import UserSettableParameter
 
-from .agents import Wolf, Elk, GrassPatch
+from .agents import Wolf, Elk, GrassPatch, Pack
 from .model import WolfElk
 
 
@@ -17,6 +17,13 @@ def wolf_elk_portrayal(agent):
         # https://icons8.com/web-app/433/sheep
         portrayal["scale"] = 0.9
         portrayal["Layer"] = 1
+
+    if type(agent) is Pack:
+        portrayal["Shape"] = "wolf_elk/resources/pack.png"
+        # https://icons8.com/web-app/433/sheep
+        portrayal["scale"] = 0.9
+        portrayal["Layer"] = 1
+
 
     elif type(agent) is Wolf:
         portrayal["Shape"] = "wolf_elk/resources/wolf.png"
@@ -50,7 +57,9 @@ chart_element2 = ChartModule(
 chart_element3 = ChartModule(
     [{"Label": "Killed Elks/Wolf", "Color": "#666666"}]
 )
-
+chart_element4 = ChartModule(
+    [{"Label": "Packs", "Color": "#666666"}]
+)
 model_params = {
     "grass_regrowth_time": UserSettableParameter(
         "slider", "Grass Regrowth Time", 20, 1, 50
@@ -87,7 +96,8 @@ server = ModularServer(
         canvas_element, 
         chart_element, 
         chart_element2, 
-        chart_element3
+        chart_element3,
+        chart_element4
     ], "Wolf Elk Predation", model_params
 )
 server.port = 8521

@@ -48,7 +48,7 @@ class Walker(Agent):
         """
         Moves agent toward the same kind.
         """
-        self.move_towards_specified_kind(type(self), radius, filter_func)
+        return self.move_towards_specified_kind(type(self), radius, filter_func)
 
     def move_towards_specified_kind(
         self, 
@@ -70,6 +70,9 @@ class Walker(Agent):
         if agent_of_type:
             agent_to_follow = self.__get_closest_agents(agent_of_type) 
             self.model.grid.move_agent(self, agent_to_follow[1].pos)
+            return agent_to_follow[1]
+        else:
+            return None
 
     def __get_closest_agents(self, agent_list : list):
         heap = []
