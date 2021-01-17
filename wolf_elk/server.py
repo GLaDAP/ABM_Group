@@ -52,7 +52,6 @@ chart_element3 = ChartModule(
 )
 
 model_params = {
-    "grass": UserSettableParameter("checkbox", "Grass Enabled", True),
     "grass_regrowth_time": UserSettableParameter(
         "slider", "Grass Regrowth Time", 20, 1, 50
     ),
@@ -60,7 +59,7 @@ model_params = {
         "slider", "Initial Elk Population", 100, 10, 300
     ),
     "elk_reproduce": UserSettableParameter(
-        "slider", "Elk Reproduction Rate", 0.39, 0.01, 1.0, 0.01
+        "slider", "Elk Reproduction Rate", 0.04, 0.01, 1.0, 0.01
     ),
     "initial_wolves": UserSettableParameter(
         "slider", "Initial Wolf Population", 50, 10, 300
@@ -83,6 +82,12 @@ model_params = {
 }
 
 server = ModularServer(
-    WolfElk, [canvas_element, chart_element, chart_element2, chart_element3], "Wolf Elk Predation", model_params
+    WolfElk, 
+    [
+        canvas_element, 
+        chart_element, 
+        chart_element2, 
+        chart_element3
+    ], "Wolf Elk Predation", model_params
 )
 server.port = 8521

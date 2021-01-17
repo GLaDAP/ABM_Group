@@ -86,6 +86,9 @@ class RandomActivationByBreed(RandomActivation):
             return 0
 
     def get_average_kills(self, breed_class):
+        """
+        
+        """
         agents = self.agents_by_breed[breed_class]
         if agents:
             age_list = [agent.kills for agent in agents.values()]

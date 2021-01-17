@@ -42,11 +42,11 @@ class Walker(Agent):
             True
         )
         next_move = self.random.choice(next_moves)
-        # Now move:
         self.model.grid.move_agent(self, next_move)
 
     def move_towards_own_kind(self, radius : int, filter_func : callable = None):
         """
+        Moves agent toward the same kind.
         """
         self.move_towards_specified_kind(type(self), radius, filter_func)
 

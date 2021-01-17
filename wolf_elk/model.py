@@ -33,7 +33,7 @@ class WolfElk(Model):
 
     wolf_gain_from_food = 20
 
-    grass = False
+    # grass = False
     grass_regrowth_time = 30
     elk_gain_from_food = 4
 
@@ -47,10 +47,9 @@ class WolfElk(Model):
         width = 20,
         initial_elk = 100,
         initial_wolves = 50,
-        elk_reproduce = 0.39,
+        elk_reproduce = 0.04,
         wolf_reproduce = 0.05,
         wolf_gain_from_food = 20,
-        grass = False,
         grass_regrowth_time = 30,
         elk_gain_from_food = 4,
     ):
@@ -77,7 +76,6 @@ class WolfElk(Model):
         self.elk_reproduce = elk_reproduce
         self.wolf_reproduce = wolf_reproduce
         self.wolf_gain_from_food = wolf_gain_from_food
-        self.grass = grass
         self.grass_regrowth_time = grass_regrowth_time
         self.elk_gain_from_food = elk_gain_from_food
 
@@ -112,19 +110,17 @@ class WolfElk(Model):
             self.schedule.add(wolf)
 
         # Create grass patches
-        if self.grass:
-            for _, x, y in self.grid.coord_iter():
+        for _, x, y in self.grid.coord_iter():
+            fully_grown = self.random.choice([True, False])
 
-                fully_grown = self.random.choice([True, False])
+            if fully_grown:
+                countdown = self.grass_regrowth_time
+            else:
+                countdown = self.random.randrange(self.grass_regrowth_time)
 
-                if fully_grown:
-                    countdown = self.grass_regrowth_time
-                else:
-                    countdown = self.random.randrange(self.grass_regrowth_time)
-
-                patch = GrassPatch(self.next_id(), (x, y), self, fully_grown, countdown)
-                self.grid.place_agent(patch, (x, y))
-                self.schedule.add(patch)
+            patch = GrassPatch(self.next_id(), (x, y), self, fully_grown, countdown)
+            self.grid.place_agent(patch, (x, y))
+            self.schedule.add(patch)
 
         self.running = True
         self.datacollector.collect(self)

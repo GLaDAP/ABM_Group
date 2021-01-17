@@ -16,27 +16,24 @@ class Elk(Walker):
         A model step. Move, then eat grass and reproduce.
         """
         self.random_move()
-        self.age += 1 / 26 # two weeks
-        if self.model.grass:
-            # Reduce energy
-            self.energy -= 1
+        self.age += 1 / 26 
+        self.energy -= 1
 
-            # If there is grass available, eat it
-            this_cell = self.model.grid.get_cell_list_contents([self.pos])
-            grass_patch = [obj for obj in this_cell if isinstance(obj, GrassPatch)][0]
-            if grass_patch.fully_grown:
-                self.energy += self.model.elk_gain_from_food
-                grass_patch.fully_grown = False
+        # If there is grass available, eat it
+        this_cell = self.model.grid.get_cell_list_contents([self.pos])
+        grass_patch = [obj for obj in this_cell if isinstance(obj, GrassPatch)][0]
+        if grass_patch.fully_grown:
+            self.energy += self.model.elk_gain_from_food
+            grass_patch.fully_grown = False
 
-            # Death
-            if self.energy < 0:
-                self.model.grid._remove_agent(self.pos, self)
-                self.model.schedule.remove(self)
+        # Death
+        if self.energy < 0:
+            self.model.grid._remove_agent(self.pos, self)
+            self.model.schedule.remove(self)
 
         if  self.random.random() < self.model.elk_reproduce:
             # Create a new Elk:
-            if self.model.grass:
-                self.energy /= 2
+            self.energy /= 2
             calf = Elk(
                 self.model.next_id(), self.pos, self.model, self.moore, 0, self.energy
             )
