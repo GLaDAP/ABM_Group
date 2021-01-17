@@ -87,7 +87,8 @@ class WolfElk(Model):
             {
                 "Wolves": lambda m: m.schedule.get_breed_count(Wolf),
                 "Elks": lambda m: m.schedule.get_breed_count(Elk),
-                "Elks age": lambda m: m.schedule.get_average_age(Elk)
+                "Elks age": lambda m: m.schedule.get_average_age(Elk),
+                "Killed Elks/Wolf" : lambda m: m.schedule.get_average_kills(Wolf)
             }
         )
 

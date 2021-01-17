@@ -6,8 +6,6 @@ class Elk(Walker):
     A elk that walks around, reproduces (asexually) and gets eaten.
     """
 
-    # energy = None
-
     def __init__(self, unique_id, pos, model, moore, age, energy=None):
         super().__init__(unique_id, pos, model, moore=moore)
         self.energy = energy
@@ -18,7 +16,6 @@ class Elk(Walker):
         A model step. Move, then eat grass and reproduce.
         """
         self.random_move()
-        # living = True
         self.age += 1 / 26 # two weeks
         if self.model.grass:
             # Reduce energy
@@ -35,7 +32,6 @@ class Elk(Walker):
             if self.energy < 0:
                 self.model.grid._remove_agent(self.pos, self)
                 self.model.schedule.remove(self)
-                # living = False
 
         if  self.random.random() < self.model.elk_reproduce:
             # Create a new Elk:
@@ -53,11 +49,10 @@ class Wolf(Walker):
     A wolf that walks around, reproduces (asexually) and eats elk.
     """
 
-    # energy = None
-
     def __init__(self, unique_id, pos, model, moore, energy=None):
         super().__init__(unique_id, pos, model, moore=moore)
         self.energy = energy
+        self.kills = 0
 
     def step(self):
         self.random_move()
@@ -71,6 +66,7 @@ class Wolf(Walker):
             self.energy += self.model.wolf_gain_from_food
 
             # Kill the elk
+            self.kills += 1
             self.model.grid._remove_agent(self.pos, elk_to_eat)
             self.model.schedule.remove(elk_to_eat)
 

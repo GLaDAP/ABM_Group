@@ -47,6 +47,9 @@ chart_element = ChartModule(
 chart_element2 = ChartModule(
     [{"Label": "Elks age", "Color": "#666666"}]
 )
+chart_element3 = ChartModule(
+    [{"Label": "Killed Elks/Wolf", "Color": "#666666"}]
+)
 
 model_params = {
     "grass": UserSettableParameter("checkbox", "Grass Enabled", True),
@@ -80,6 +83,6 @@ model_params = {
 }
 
 server = ModularServer(
-    WolfElk, [canvas_element, chart_element, chart_element2], "Wolf Elk Predation", model_params
+    WolfElk, [canvas_element, chart_element, chart_element2, chart_element3], "Wolf Elk Predation", model_params
 )
 server.port = 8521
