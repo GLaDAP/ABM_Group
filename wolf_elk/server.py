@@ -1,3 +1,13 @@
+"""
+GROUP: LIMPENS (9)
+DATE: 18 January 2021
+AUTHOR(S): Karlijn Limpens
+           Joos Akkerman
+           Guido Vaessen
+           Stijn van den Berg
+           David Puroja 
+DESCRIPTION: 
+"""
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.modules import CanvasGrid, ChartModule
 from mesa.visualization.UserParam import UserSettableParameter
@@ -13,7 +23,7 @@ def wolf_elk_portrayal(agent):
     portrayal = {}
 
     if type(agent) is Elk:
-        portrayal["Shape"] = "wolf_elk/resources/sheep.png"
+        portrayal["Shape"] = "wolf_elk/resources/elk.png"
         # https://icons8.com/web-app/433/sheep
         portrayal["scale"] = 0.9
         portrayal["Layer"] = 1

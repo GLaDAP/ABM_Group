@@ -1,4 +1,14 @@
 """
+GROUP: LIMPENS (9)
+DATE: 18 January 2021
+AUTHOR(S): Karlijn Limpens
+           Joos Akkerman
+           Guido Vaessen
+           Stijn van den Berg
+           David Puroja 
+DESCRIPTION: 
+"""
+"""
 Walker class, with functions to move to certain kind so packs can be created
 in the ABM. Also, distance (steps to the point in the grid) can be measured to
 check the closest one and move in that direction.

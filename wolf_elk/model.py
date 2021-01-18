@@ -1,4 +1,14 @@
 """
+GROUP: LIMPENS (9)
+DATE: 18 January 2021
+AUTHOR(S): Karlijn Limpens
+           Joos Akkerman
+           Guido Vaessen
+           Stijn van den Berg
+           David Puroja 
+DESCRIPTION: 
+"""
+"""
 Wolf-elk Predation Model
 ================================
 
