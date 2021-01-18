@@ -42,31 +42,55 @@ class Wolf(Walker):
             agents (list): The list of agents to filter.
         """
         return [
-            agent for agent in agents if agent.energy < self.model.energy_threshold and not agent.pack
+            agent for agent in agents 
+            if agent.energy < self.model.energy_threshold and not agent.pack
+        ]
+
+    def filter_packs(self, packs):
+        """
+        Filter packs from list
+        Args:
+            packs (list): The list of packs to filter.
+        """
+        return [
+            pack for pack in packs 
+            if len(pack) < self.model.pack_size_threshold
         ]
 
     def step(self):
         """
         Step function for the Wolf-object.
         """
+        logging.debug("Wolf info ID: {}, PACK: {}, POS: {}".format(self.unique_id, self.pack, self.pos))
         if (self.pack):
             # If part of a pack, the pack controls the Wolf and the rest is
-            # skipped. The reason for this is that removing the wolf from the
-            # scheduler gives iteration errors.
+            # skipped. This should not happen and seeing this line indicates
+            # an error in the model.
+            logging.debug("Wolf {} part of pack.".format(self))
             return
-
+        
         self.random_move()
         self.energy -= 1
         if self.energy < 20:
             """
-            A wolf first tries to create a pack to hutn down an Elk.
+            A wolf first tries to create a pack to hunt down an Elk.
             If that is not possible, a Wolf tries to kill the elk, but with
             a smaller probability of success.
             """
+            pack = self.move_towards_specified_kind(Pack, 4, self.filter_packs)
+            if (pack):
+                pack.add_wolf_to_pack(self)
+                return
+
             agent = self.move_towards_own_kind(4, self.filter_func)
             if (agent):
                 pack = Pack(
-                    self.model.next_id(), self.pos, self.model, [], self.moore
+                    self.model.next_id(), 
+                    self.pos, 
+                    self.model, 
+                    [], 
+                    self.moore, 
+                    self.model.pack_size_threshold
                 )
                 self.model.schedule.add(pack)
                 self.model.grid.place_agent(pack, pack.pos)
@@ -85,7 +109,7 @@ class Wolf(Walker):
 
                         # Kill the elk
                         self.kills += 1
-                        self.model.grid._remove_agent(self.pos, elk_to_eat)
+                        self.model.grid.remove_agent(elk_to_eat)
                         self.model.schedule.remove(elk_to_eat)
 
         # Death or reproduction
@@ -110,7 +134,8 @@ class Wolf(Walker):
         Removes a dead wolf from the model.
         """
         logging.debug("Wolf died.")
-        self.model.grid._remove_agent(self.pos, self)
+        self.pack = False
+        self.model.grid.remove_agent(self)
         self.model.schedule.remove(self)
 
     # Equality operators to overrule comparison in the heapq
@@ -127,7 +152,15 @@ class Pack(Walker):
     when the pack is large enough and finds an Elk, it eats and the pack is
     disbanded.
     """
-    def __init__(self, unique_id, pos, model, wolves: list, moore: bool):
+    def __init__(
+        self,
+        unique_id,
+        pos,
+        model,
+        wolves: list,
+        moore: bool,
+        pack_size_threshold: int
+    ):
         """
         Create a Pack.
         Args:
@@ -139,7 +172,7 @@ class Pack(Walker):
         """
         super().__init__(unique_id, pos, model, moore=moore)
         self.wolves = wolves
-        self.min_pack = 4
+        self.min_pack = pack_size_threshold
         for wolf in wolves:
             self.add_wolf_to_pack(wolf)
 
@@ -148,26 +181,24 @@ class Pack(Walker):
         Step function for the Pack.
         """
         logging.debug("Wolf pack size {}".format(len(self.wolves)))
-
-
         if (len(self.wolves) < self.min_pack):
             self.find_wolf_for_pack()
             logging.debug("Pack size below minimum")
         else:
             logging.debug("Pack up to size. Start searching for Elk.")
-            if (self.move_towards_specified_kind(Elk, 2) is None):
+            if (self.move_towards_specified_kind(Elk, self.model.wolf_territorium) is None):
                 # No elk found, move random.
                 self.random_move()
-
 
         # Check for elks in this cell grid. The pack already moved to this
         # cell containing an Elk.
         this_cell = self.model.grid.get_cell_list_contents([self.pos])
         elk = [obj for obj in this_cell if isinstance(obj, Elk)]
 
-        if (len(elk) > 0 and len(self.wolves) >= 4):
+        if (len(elk) > 0 and len(self.wolves) >= self.model.pack_size_threshold):
             # Pack eats the elk, pack is going to disband.
             self.pack_has_eaten(elk)
+            return
 
         for wolf in self.wolves:
             wolf.energy -= 1
@@ -175,7 +206,7 @@ class Pack(Walker):
                 logging.debug("Wolf died while in pack")
                 wolf.pack = False
                 self.wolves.remove(wolf)
-                self.model.schedule.remove(wolf)
+                continue
             if self.random.random() < self.model.wolf_reproduce:
                 logging.debug("Wolf born in pack")
                 wolf.energy /= 2
@@ -187,14 +218,13 @@ class Pack(Walker):
                     wolf.energy
                 )
                 cub.pack = True
-                self.model.schedule.add(cub)
                 self.wolves.append(cub)
-
+                logging.debug("Wolf born with ID: {}".format(cub.unique_id))
         if (len(self.wolves) < 2):
             logging.debug("Disbanding small pack")
             for wolf in self.wolves:
                 self.remove_from_pack(wolf)
-            self.model.grid._remove_agent(self.pos, self)
+            self.model.grid.remove_agent(self)
             self.model.schedule.remove(self)
 
     def filter_func_pack(self, packs):
@@ -248,7 +278,7 @@ class Pack(Walker):
             self.add_wolf_to_pack(wolf)
         logging.debug("Pack is now {} wolves".format(len(self.wolves)))
         self.model.schedule.remove(pack)
-        self.model.grid._remove_agent(pack.pos, pack)
+        self.model.grid.remove_agent(pack)
 
     def add_wolf_to_pack(self, wolf):
         """
@@ -256,10 +286,12 @@ class Pack(Walker):
         Args:
             wolf (Agent): The Wolf-object to add to the pack.
         """
+        logging.debug("Adding wolf {} to pack".format(wolf.unique_id))
         # When a Wolf is part of a pack
         if (not wolf.pack):
-            self.model.grid._remove_agent(wolf.pos, wolf)
-            wolf.pack = True
+            self.model.schedule.remove(wolf)
+            self.model.grid.remove_agent(wolf)
+        wolf.pack = True
         self.wolves.append(wolf)
 
     def remove_from_pack(self, wolf):
@@ -268,8 +300,11 @@ class Pack(Walker):
         Args:
             wolf (Agent): The Wolf agent to remove from the pack.
         """
-        self.model.grid.place_agent(wolf, wolf.pos)
+        logging.debug("Removing Wolf")
+        logging.debug("Wolf info ID: {}, PACK: {}, POS: {}".format(wolf.unique_id, wolf.pack, wolf.pos))
         wolf.pack = False
+        self.model.schedule.add(wolf)
+        self.model.grid.place_agent(wolf, self.pos)
         self.wolves.remove(wolf)
 
     def pack_has_eaten(self, elk):
@@ -280,16 +315,15 @@ class Pack(Walker):
         """
         elk_to_eat = self.random.choice(elk)
         # Remove elk
-        self.model.grid._remove_agent(self.pos, elk_to_eat)
+        self.model.grid.remove_agent(elk_to_eat)
         self.model.schedule.remove(elk_to_eat)
-        logging.debug('Pack has eated, disbanding.')
+        logging.debug('Pack has eated, disbanding pack with size {}'.format(len(self.wolves)))
         for wolf in self.wolves:
             wolf.energy += self.model.wolf_gain_from_food
             wolf.kills += 1
-            wolf.pack = False
-            self.model.grid.place_agent(wolf, wolf.pos)
+            self.remove_from_pack(wolf)
         # Remove pack from scheduler
-        self.model.grid._remove_agent(self.pos, self)
+        self.model.grid.remove_agent(self)
         self.model.schedule.remove(self)
 
     # Equality operators to overrule comparison in the heapq.
@@ -298,3 +332,6 @@ class Pack(Walker):
 
     def __lt__(self, other):
         return True
+
+    def __len__(self):
+        return len(self.wolves)

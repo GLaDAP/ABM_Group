@@ -86,6 +86,9 @@ class RandomActivationByBreed(RandomActivation):
         """
         return len(self.agents_by_breed[breed_class].values())
 
+    def get_breed_list(self, breed_class):
+        return self.agents_by_breed[breed_class].values()
+
     def get_average_age(self, breed_class):
         """
         Returns the average age of all the agents of a certain breed in the

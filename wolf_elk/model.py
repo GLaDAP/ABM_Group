@@ -27,23 +27,6 @@ class WolfElk(Model):
     """
     Wolf-elk Predation Model
     """
-    # height = 20
-    # width = 20
-
-    # initial_elk = 100
-    # initial_wolves = 50
-
-    # elk_reproduce = 0.04
-    # wolf_reproduce = 0.05
-
-    # wolf_gain_from_food = 20
-
-    # # grass = False
-    # grass_regrowth_time = 30
-    # elk_gain_from_food = 4
-
-    # max_members_group = 2
-
     description = (
         "A model for simulating wolf and elk (predator-prey) \
          ecosystem modelling."
@@ -60,7 +43,9 @@ class WolfElk(Model):
         wolf_gain_from_food=20,
         grass_regrowth_time=30,
         elk_gain_from_food=4,
-        energy_threshold=10
+        energy_threshold=10,
+        pack_size_threshold=4,
+        wolf_territorium=4
     ):
         """
         Create a new Wolf-elk model with the given parameters.
@@ -88,13 +73,14 @@ class WolfElk(Model):
         self.grass_regrowth_time = grass_regrowth_time
         self.elk_gain_from_food = elk_gain_from_food
         self.energy_threshold = energy_threshold
-
+        self.pack_size_threshold = pack_size_threshold
+        self.wolf_territorium = wolf_territorium
 
         self.schedule = RandomActivationByBreed(self)
         self.grid = MultiGrid(self.height, self.width, torus=True)
         self.datacollector = DataCollector(
             {
-                "Wolves": lambda m: m.schedule.get_breed_count(Wolf),
+                "Wolves": lambda m: m.get_wolf_breed_count(),
                 "Elks": lambda m: m.schedule.get_breed_count(Elk),
                 "Elks age": lambda m: m.schedule.get_average_age(Elk),
                 "Killed Elks/Wolf": lambda m:
@@ -143,6 +129,11 @@ class WolfElk(Model):
 
         self.running = True
         self.datacollector.collect(self)
+
+    def get_wolf_breed_count(self):
+        wolves = self.schedule.get_breed_count(Wolf)
+        wolves += sum([len(pack) for pack in self.schedule.get_breed_list(Pack)])
+        return wolves
 
     def step(self):
         self.schedule.step(False)
