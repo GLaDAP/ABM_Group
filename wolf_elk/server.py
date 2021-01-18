@@ -12,9 +12,9 @@ from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.modules import CanvasGrid, ChartModule
 from mesa.visualization.UserParam import UserSettableParameter
 
-from .agents import Wolf, Elk, GrassPatch, Pack
+from .wolf import Wolf, Pack
+from .agents import Elk, GrassPatch
 from .model import WolfElk
-
 
 def wolf_elk_portrayal(agent):
     if agent is None:
@@ -24,19 +24,16 @@ def wolf_elk_portrayal(agent):
 
     if type(agent) is Elk:
         portrayal["Shape"] = "wolf_elk/resources/elk.png"
-        # https://icons8.com/web-app/433/sheep
         portrayal["scale"] = 0.9
         portrayal["Layer"] = 1
 
     if type(agent) is Pack:
         portrayal["Shape"] = "wolf_elk/resources/pack.png"
-        # https://icons8.com/web-app/433/sheep
         portrayal["scale"] = 0.9
         portrayal["Layer"] = 1
 
     elif type(agent) is Wolf:
         portrayal["Shape"] = "wolf_elk/resources/wolf.png"
-        # https://icons8.com/web-app/36821/German-Shepherd
         portrayal["scale"] = 0.9
         portrayal["Layer"] = 2
         portrayal["text"] = round(agent.energy, 1)
@@ -56,7 +53,7 @@ def wolf_elk_portrayal(agent):
     return portrayal
 
 
-canvas_element = CanvasGrid(wolf_elk_portrayal, 20, 20, 500, 500)
+canvas_element = CanvasGrid(wolf_elk_portrayal, 40, 40, 1000, 1000)
 chart_element = ChartModule(
     [
         {"Label": "Wolves", "Color": "#AA0000"},

@@ -8,15 +8,7 @@ AUTHOR(S): Karlijn Limpens
            David Puroja 
 DESCRIPTION: 
 """
-"""
-Wolf-elk Predation Model
-================================
 
-Replication of the model found in NetLogo:
-    Wilensky, U. (1997). NetLogo Wolf elk Predation model.
-    Center for Connected Learning and Computer-Based Modeling,
-    Northwestern University, Evanston, IL.
-"""
 
 from mesa import Model
 from mesa.space import MultiGrid
@@ -26,7 +18,8 @@ from collections import defaultdict
 import logging
 import uuid
 
-from .agents import Elk, Wolf, GrassPatch, Pack
+from .agents import Elk, GrassPatch
+from .wolf import Wolf, Pack
 from .schedule import RandomActivationByBreed
 
 
@@ -34,22 +27,22 @@ class WolfElk(Model):
     """
     Wolf-elk Predation Model
     """
-    height = 20
-    width = 20
+    # height = 20
+    # width = 20
 
-    initial_elk = 100
-    initial_wolves = 50
+    # initial_elk = 100
+    # initial_wolves = 50
 
-    elk_reproduce = 0.04
-    wolf_reproduce = 0.05
+    # elk_reproduce = 0.04
+    # wolf_reproduce = 0.05
 
-    wolf_gain_from_food = 20
+    # wolf_gain_from_food = 20
 
-    # grass = False
-    grass_regrowth_time = 30
-    elk_gain_from_food = 4
+    # # grass = False
+    # grass_regrowth_time = 30
+    # elk_gain_from_food = 4
 
-    max_members_group = 2
+    # max_members_group = 2
 
     description = (
         "A model for simulating wolf and elk (predator-prey) \
@@ -58,8 +51,8 @@ class WolfElk(Model):
 
     def __init__(
         self,
-        height=20,
-        width=20,
+        height=40,
+        width=40,
         initial_elk=100,
         initial_wolves=50,
         elk_reproduce=0.04,
@@ -67,6 +60,7 @@ class WolfElk(Model):
         wolf_gain_from_food=20,
         grass_regrowth_time=30,
         elk_gain_from_food=4,
+        energy_threshold=10
     ):
         """
         Create a new Wolf-elk model with the given parameters.
@@ -93,6 +87,8 @@ class WolfElk(Model):
         self.wolf_gain_from_food = wolf_gain_from_food
         self.grass_regrowth_time = grass_regrowth_time
         self.elk_gain_from_food = elk_gain_from_food
+        self.energy_threshold = energy_threshold
+
 
         self.schedule = RandomActivationByBreed(self)
         self.grid = MultiGrid(self.height, self.width, torus=True)
@@ -157,6 +153,7 @@ class WolfElk(Model):
                 self.schedule.time,
                 self.schedule.get_breed_count(Wolf),
                 self.schedule.get_breed_count(Elk),
+                self.schedule.get_breed_count(Pack)
             ]
         )
 
