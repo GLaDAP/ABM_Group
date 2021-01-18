@@ -78,7 +78,8 @@ class RandomActivationByBreed(RandomActivation):
 
     def get_average_age(self, breed_class):
         """
-        Returns the average age of all the agents of a certain breed in the queue.
+        Returns the average age of all the agents of a certain breed in the
+        queue.
         """
         agents = self.agents_by_breed[breed_class]
         if agents:
@@ -89,7 +90,8 @@ class RandomActivationByBreed(RandomActivation):
 
     def get_average_kills(self, breed_class):
         """
-        
+        Returns the average kills of all the agents of a certain breed in the
+        queue.
         """
         agents = self.agents_by_breed[breed_class]
         if agents:

@@ -18,7 +18,7 @@ import uuid
 
 from .agents import Elk, Wolf, GrassPatch, Pack
 from .schedule import RandomActivationByBreed
-from .group import Groups
+
 
 class WolfElk(Model):
     """
@@ -42,20 +42,21 @@ class WolfElk(Model):
     max_members_group = 2
 
     description = (
-        "A model for simulating wolf and elk (predator-prey) ecosystem modelling."
+        "A model for simulating wolf and elk (predator-prey) \
+         ecosystem modelling."
     )
 
     def __init__(
         self,
-        height = 20,
-        width = 20,
-        initial_elk = 100,
-        initial_wolves = 50,
-        elk_reproduce = 0.04,
-        wolf_reproduce = 0.05,
-        wolf_gain_from_food = 20,
-        grass_regrowth_time = 30,
-        elk_gain_from_food = 4,
+        height=20,
+        width=20,
+        initial_elk=100,
+        initial_wolves=50,
+        elk_reproduce=0.04,
+        wolf_reproduce=0.05,
+        wolf_gain_from_food=20,
+        grass_regrowth_time=30,
+        elk_gain_from_food=4,
     ):
         """
         Create a new Wolf-elk model with the given parameters.
@@ -90,8 +91,9 @@ class WolfElk(Model):
                 "Wolves": lambda m: m.schedule.get_breed_count(Wolf),
                 "Elks": lambda m: m.schedule.get_breed_count(Elk),
                 "Elks age": lambda m: m.schedule.get_average_age(Elk),
-                "Killed Elks/Wolf" : lambda m: m.schedule.get_average_kills(Wolf),
-                "Packs" : lambda m:m.schedule.get_breed_count(Pack)
+                "Killed Elks/Wolf": lambda m:
+                    m.schedule.get_average_kills(Wolf),
+                "Packs": lambda m: m.schedule.get_breed_count(Pack)
             }
         )
 
@@ -123,7 +125,13 @@ class WolfElk(Model):
             else:
                 countdown = self.random.randrange(self.grass_regrowth_time)
 
-            patch = GrassPatch(self.next_id(), (x, y), self, fully_grown, countdown)
+            patch = GrassPatch(
+                self.next_id(),
+                (x, y),
+                self,
+                fully_grown,
+                countdown
+            )
             self.grid.place_agent(patch, (x, y))
             self.schedule.add(patch)
 
@@ -143,11 +151,19 @@ class WolfElk(Model):
         )
 
     def run_model(self, step_count=200):
-        logging.debug("Initial number wolves: %s", self.schedule.get_breed_count(Wolf))
-        logging.debug("Initial number elk: %s", self.schedule.get_breed_count(Elk))
+        logging.debug(
+            "Initial number wolves: %s", self.schedule.get_breed_count(Wolf)
+        )
+        logging.debug(
+            "Initial number elk: %s", self.schedule.get_breed_count(Elk)
+        )
 
         for _ in range(step_count):
             self.step()
 
-        logging.debug("Final number wolves: %s", self.schedule.get_breed_count(Wolf))
-        logging.debug("Final number elk: %s", self.schedule.get_breed_count(Elk))
+        logging.debug(
+            "Final number wolves: %s", self.schedule.get_breed_count(Wolf)
+        )
+        logging.debug(
+            "Final number elk: %s", self.schedule.get_breed_count(Elk)
+        )

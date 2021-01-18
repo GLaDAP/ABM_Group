@@ -24,7 +24,6 @@ def wolf_elk_portrayal(agent):
         portrayal["scale"] = 0.9
         portrayal["Layer"] = 1
 
-
     elif type(agent) is Wolf:
         portrayal["Shape"] = "wolf_elk/resources/wolf.png"
         # https://icons8.com/web-app/36821/German-Shepherd
@@ -49,7 +48,10 @@ def wolf_elk_portrayal(agent):
 
 canvas_element = CanvasGrid(wolf_elk_portrayal, 20, 20, 500, 500)
 chart_element = ChartModule(
-    [{"Label": "Wolves", "Color": "#AA0000"}, {"Label": "Elks", "Color": "#666666"}]
+    [
+        {"Label": "Wolves", "Color": "#AA0000"},
+        {"Label": "Elks", "Color": "#666666"}
+    ]
 )
 chart_element2 = ChartModule(
     [{"Label": "Elks age", "Color": "#666666"}]
@@ -91,11 +93,11 @@ model_params = {
 }
 
 server = ModularServer(
-    WolfElk, 
+    WolfElk,
     [
-        canvas_element, 
-        chart_element, 
-        chart_element2, 
+        canvas_element,
+        chart_element,
+        chart_element2,
         chart_element3,
         chart_element4
     ], "Wolf Elk Predation", model_params
