@@ -18,6 +18,9 @@ from collections import defaultdict
 import logging
 import uuid
 
+import numpy as np
+import pandas as pd
+
 from .agents import Elk, GrassPatch
 from .wolf import Wolf, Pack
 from .schedule import RandomActivationByBreed
@@ -45,7 +48,8 @@ class WolfElk(Model):
         elk_gain_from_food=4,
         energy_threshold=10,
         pack_size_threshold=4,
-        wolf_territorium=4
+        wolf_territorium=4,
+        polynomial_degree=10
     ):
         """
         Create a new Wolf-elk model with the given parameters.
@@ -75,6 +79,10 @@ class WolfElk(Model):
         self.energy_threshold = energy_threshold
         self.pack_size_threshold = pack_size_threshold
         self.wolf_territorium = wolf_territorium
+
+        self.polynomial_degree = polynomial_degree
+        self.elk_reproduction_params = self.fit_elk_reproduction_chance()
+        self.elk_wolfkill_params = self.fit_elk_wolfkill_by_age()
 
         self.schedule = RandomActivationByBreed(self)
         self.grid = MultiGrid(self.height, self.width, torus=True)
@@ -134,6 +142,40 @@ class WolfElk(Model):
         wolves = self.schedule.get_breed_count(Wolf)
         wolves += sum([len(pack) for pack in self.schedule.get_breed_list(Pack)])
         return wolves
+
+    def fit_elk_reproduction_chance(self):
+        """
+        Fits a polynomial to the elk reproduction data, used for interpolation
+        """
+        df = pd.read_csv('wolf_elk/empirical_data/elk_ratesbyage.csv', sep=',')
+        all_ages = np.append([1],df['age'].values)
+        all_preg_rate = np.append([0], df['preg_rate'])/26
+
+        degree = self.polynomial_degree
+
+        params = params = np.polyfit(all_ages, all_preg_rate, deg=degree)
+
+        return params
+
+    def fit_elk_wolfkill_by_age(self):
+        """
+        Fits a polynomial to the data of wolf-kills per elk age, used for interpolation
+        """
+        df = pd.read_csv('wolf_elk/empirical_data/elk_ratesbyage.csv', sep=',')
+        all_ages = np.append([1],df['age'].values)
+        all_perc_killed = np.append([50],(df['perc_of_killed'].values)/2)/100
+        all_surv_rate = np.append([0.9],df['surv_rate'].values)
+
+        degree = self.polynomial_degree
+        P_kill_by_wolf = 1100/1350
+
+        # Apply Bayes' Theorem
+        P_kill_wolf_byage = np.array([((all_perc_killed[i]/all_surv_rate[i]*P_kill_by_wolf)/all_surv_rate[i]) for i,a in enumerate(all_ages)])
+
+        # Fit polynomial
+        params = np.polyfit(all_ages, P_kill_wolf_byage, deg=degree)
+
+        return params
 
     def step(self):
         self.schedule.step(False)

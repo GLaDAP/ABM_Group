@@ -14,6 +14,7 @@ from .agents import Elk
 
 import random
 import logging
+import numpy as np
 
 
 class Wolf(Walker):
@@ -186,18 +187,28 @@ class Pack(Walker):
             logging.debug("Pack size below minimum")
         else:
             logging.debug("Pack up to size. Start searching for Elk.")
-            if (self.move_towards_specified_kind(Elk, self.model.wolf_territorium) is None):
+            if (self.move_towards_specified_kind(Elk, self.model.wolf_territorium, self.choose_elk_to_eat) is None):
                 # No elk found, move random.
                 self.random_move()
 
         # Check for elks in this cell grid. The pack already moved to this
         # cell containing an Elk.
-        this_cell = self.model.grid.get_cell_list_contents([self.pos])
-        elk = [obj for obj in this_cell if isinstance(obj, Elk)]
+        # this_cell = self.model.grid.get_cell_list_contents([self.pos])
+        # elk = [obj for obj in this_cell if isinstance(obj, Elk)]
 
-        if (len(elk) > 0 and len(self.wolves) >= self.model.pack_size_threshold):
-            # Pack eats the elk, pack is going to disband.
-            self.pack_has_eaten(elk)
+        # if (len(elk) > 0 and len(self.wolves) >= self.model.pack_size_threshold):
+        #     # Pack eats the elk, pack is going to disband.
+        #     self.pack_has_eaten(elk)
+        #     return
+
+        # Select elk to be eaten
+        elk_in_radius = self.get_elk_in_radius()
+        number_elk_eaten = min(len(self.wolves), len(elk_in_radius)) # eat at most one elk per wolf, otherwise as much as available
+        chosen_elk_to_eat = self.choose_elk_to_eat(elk_in_radius, number_elk_eaten) 
+
+        if (len(chosen_elk_to_eat) > 0 and len(self.wolves) >= self.model.pack_size_threshold):
+            # Pack eats all chosen elk, pack is going to disband.
+            self.pack_has_eaten(chosen_elk_to_eat)
             return
 
         for wolf in self.wolves:
@@ -307,19 +318,62 @@ class Pack(Walker):
         self.model.grid.place_agent(wolf, self.pos)
         self.wolves.remove(wolf)
 
-    def pack_has_eaten(self, elk):
+    def get_elk_in_radius(self,radius=4):
+        """
+        Checks pack radius for available elk
+        """
+        agents_in_radius = self.model.grid.get_neighbors(
+            self.pos,
+            moore=True,
+            include_center=False,
+            radius=radius
+        )
+        # Get closest elks
+        elk_in_radius = [
+            agent for agent in agents_in_radius if isinstance(agent, Elk)
+        ]
+
+        return elk_in_radius
+    
+    def choose_elk_to_eat(self, elk, number=1):
+        """
+        Chooses elk to eat based on fitted polynomial to the probability 
+        curve of elk being killed by wolf based on age
+        """
+
+        if len(elk) == 0:
+            return []
+
+        def prob_killedbywolf_byage(age):
+            param = self.model.elk_wolfkill_params
+            degree = self.model.polynomial_degree
+            return max(0.001,sum([param[i]*age**(degree-i) for i in range(degree+1)]))
+
+        # compute absolute and relative probabilities
+        P_per_elk = [prob_killedbywolf_byage(ind_elk.age) for ind_elk in elk]
+        P_all_elk = [P_elk/sum(P_per_elk) for P_elk in P_per_elk]
+
+        # control for rounding errors to have a total probability of 1
+        P_all_elk[0] += 1-sum(P_all_elk)
+
+        return np.random.choice(elk, p=P_all_elk, replace=False, size=number)
+
+    def pack_has_eaten(self, elk_to_eat):
         """
         Pack has eaten. Add kills to wolf, add energy and disband the pack.
         Args:
             elk (Agent): The Elk-agent to eat.
         """
-        elk_to_eat = self.random.choice(elk)
+        # elk_to_eat = self.random.choice(elk)
+        # elk_to_eat = self.choose_elk_to_eat(elk)
+
         # Remove elk
-        self.model.grid.remove_agent(elk_to_eat)
-        self.model.schedule.remove(elk_to_eat)
+        for elk in elk_to_eat:
+            self.model.grid.remove_agent(elk)
+            self.model.schedule.remove(elk)
         logging.debug('Pack has eated, disbanding pack with size {}'.format(len(self.wolves)))
         for wolf in self.wolves:
-            wolf.energy += self.model.wolf_gain_from_food
+            wolf.energy += self.model.wolf_gain_from_food*len(elk_to_eat)
             wolf.kills += 1
             self.remove_from_pack(wolf)
         # Remove pack from scheduler
