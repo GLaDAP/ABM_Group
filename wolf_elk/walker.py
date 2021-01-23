@@ -18,7 +18,6 @@ from mesa import Agent
 import heapq  # For efficient sorting of nearby agents
 import random
 
-
 class Walker(Agent):
     """
     Class with walker functions for all the agents.
@@ -92,6 +91,7 @@ class Walker(Agent):
             return None
 
     def __get_closest_agents(self, agent_list: list):
+        print(agent_list)
         heap = []
         [
             heapq.heappush(

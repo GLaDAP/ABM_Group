@@ -56,7 +56,7 @@ class Elk(Walker):
             self.model.grid._remove_agent(self.pos, self)
             self.model.schedule.remove(self)
 
-        if self.random.random() < self.model.elk_reproduce:
+        if self.random.random() < self.compute_reproduction_prob():
             # Create a new Elk:
             self.energy /= 2
             calf = Elk(
@@ -69,6 +69,13 @@ class Elk(Walker):
             )
             self.model.grid.place_agent(calf, self.pos)
             self.model.schedule.add(calf)
+
+    def compute_reproduction_prob(self):
+        """
+        Computes the probability of reproduction based on the age of the elk
+        """
+        degree = self.model.polynomial_degree
+        return max(0,sum([self.model.elk_reproduction_params[i]*self.age**(degree-i) for i in range(degree+1)]))
 
     # Equality operators to overrule comparison in the heapq
     def __eq__(self, other):
