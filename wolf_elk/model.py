@@ -80,7 +80,7 @@ class WolfElk(Model):
         self.grid = MultiGrid(self.height, self.width, torus=True)
         self.datacollector = DataCollector(
             {
-                "Wolves": lambda m: m.get_wolf_breed_count(),
+                "Wolves": lambda m: m.get_wolf_breed_count(), #lambda m: m.schedule.get_breed_count(Wolf),#
                 "Elks": lambda m: m.schedule.get_breed_count(Elk),
                 "Elks age": lambda m: m.schedule.get_average_age(Elk),
                 "Killed Elks/Wolf": lambda m:
