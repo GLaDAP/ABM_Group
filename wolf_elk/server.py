@@ -1,12 +1,17 @@
 """
-GROUP: LIMPENS (9)
-DATE: 18 January 2021
-AUTHOR(S): Karlijn Limpens
-           Joos Akkerman
-           Guido Vaessen
-           Stijn van den Berg
-           David Puroja 
-DESCRIPTION: 
+GROUP:      LIMPENS (9)
+DATE:       18 January 2021
+AUTHOR(S):  Karlijn Limpens
+            Joos Akkerman
+            Guido Vaessen
+            Stijn van den Berg
+            David Puroja
+DESCRIPTION:This file contains code to show the web interface for the model.
+            It contains elements to add charts, change the slider variables and
+            values and to change the canvas size.
+            Part of the code (Base function setup) is from Mesa Examples:
+            https://github.com/projectmesa/mesa/tree/master/examples/wolf_sheep
+
 """
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.modules import CanvasGrid, ChartModule
@@ -54,6 +59,7 @@ def wolf_elk_portrayal(agent):
 
 
 canvas_element = CanvasGrid(wolf_elk_portrayal, 40, 40, 1000, 1000)
+
 chart_element = ChartModule(
     [
         {"Label": "Wolves", "Color": "#AA0000"},
@@ -63,24 +69,27 @@ chart_element = ChartModule(
 chart_element2 = ChartModule(
     [{"Label": "Elks age", "Color": "#666666"}]
 )
+
 chart_element3 = ChartModule(
     [{"Label": "Killed Elks/Wolf", "Color": "#666666"}]
 )
+
 chart_element4 = ChartModule(
     [{"Label": "Packs", "Color": "#666666"}]
 )
+
 model_params = {
     "grass_regrowth_time": UserSettableParameter(
         "slider", "Grass Regrowth Time", 20, 1, 50
     ),
     "initial_elk": UserSettableParameter(
-        "slider", "Initial Elk Population", 100, 10, 300
+        "slider", "Initial Elk Population", 100, 50, 500
     ),
     "elk_reproduce": UserSettableParameter(
         "slider", "Elk Reproduction Rate", 0.04, 0.01, 1.0, 0.01
     ),
     "initial_wolves": UserSettableParameter(
-        "slider", "Initial Wolf Population", 50, 10, 300
+        "slider", "Initial Wolf Population", 20, 10, 100
     ),
     "wolf_reproduce": UserSettableParameter(
         "slider",

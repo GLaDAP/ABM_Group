@@ -1,12 +1,15 @@
 """
-GROUP: LIMPENS (9)
-DATE: 18 January 2021
-AUTHOR(S): Karlijn Limpens
-           Joos Akkerman
-           Guido Vaessen
-           Stijn van den Berg
-           David Puroja 
-DESCRIPTION: 
+GROUP:      LIMPENS (9)
+DATE:       18 January 2021
+AUTHOR(S):  Karlijn Limpens
+            Joos Akkerman
+            Guido Vaessen
+            Stijn van den Berg
+            David Puroja 
+DESCRIPTION:This class contains definitions of two of the four agents in this
+            model: the Elk-Agents and GrassPatch Agents. 
+            A small part of the code (the GrassPatch) is from Mesa Examples:
+            https://github.com/projectmesa/mesa/tree/master/examples/wolf_sheep
 """
 from mesa import Agent
 from .walker import Walker
@@ -19,7 +22,7 @@ class Elk(Walker):
     """
     A elk that walks around, reproduces (asexually) and gets eaten.
     """
-    def __init__(self, unique_id, pos, model, moore, age, energy=None):
+    def __init__(self, unique_id, pos, model, moore, age, energy):
         """
         Create a Pack.
         Args:
@@ -39,7 +42,7 @@ class Elk(Walker):
         A model step. Move, then eat grass and reproduce.
         """
         self.random_move()
-        self.age += 1 / 26
+        self.age += self.model.time_per_step
         self.energy -= 1
 
         # If there is grass available, eat it
@@ -89,14 +92,12 @@ class GrassPatch(Agent):
     """
     A patch of grass that grows at a fixed rate and it is eaten by elk
     """
-
     def __init__(self, unique_id, pos, model, fully_grown, countdown):
         """
         Creates a new patch of grass
-
         Args:
-            grown: (boolean) Whether the patch of grass is fully grown or not
-            countdown: Time for the patch of grass to be fully grown again
+            grown (boolean): Whether the patch of grass is fully grown or not
+            countdown (int): Time for the patch of grass to be fully grown again
         """
         super().__init__(unique_id, model)
         self.fully_grown = fully_grown
@@ -106,7 +107,6 @@ class GrassPatch(Agent):
     def step(self):
         if not self.fully_grown:
             if self.countdown <= 0:
-                # Set as fully grown
                 self.fully_grown = True
                 self.countdown = self.model.grass_regrowth_time
             else:

@@ -1,12 +1,14 @@
 """
-GROUP: LIMPENS (9)
-DATE: 18 January 2021
-AUTHOR(S): Karlijn Limpens
-           Joos Akkerman
-           Guido Vaessen
-           Stijn van den Berg
-           David Puroja 
-DESCRIPTION: 
+GROUP:       LIMPENS (9)
+DATE:        18 January 2021
+AUTHOR(S):   Karlijn Limpens
+             Joos Akkerman
+             Guido Vaessen
+             Stijn van den Berg
+             David Puroja 
+DESCRIPTION: This class contains two definitions for agents: Wolf-Agents and 
+             Pack-agents. A Wolf-agent moves freely as an individual in the
+             model until it gets hungry: then it joins a Pack to attack an Elk.
 """
 from mesa import Agent
 from .walker import Walker
@@ -21,7 +23,7 @@ class Wolf(Walker):
     """
     A wolf that walks around, reproduces (asexually) and eats elk.
     """
-    def __init__(self, unique_id, pos, model, moore, energy=None):
+    def __init__(self, unique_id, pos, model, moore, energy):
         """
         Create a Wolf.
         Args:
@@ -38,9 +40,12 @@ class Wolf(Walker):
 
     def filter_func(self, agents):
         """
-        Filter wolves from list.
+        Filter wolves from list which are not part of a pack and also want to
+        eat.
         Args:
             agents (list): The list of agents to filter.
+        Returns:
+            List of agents.
         """
         return [
             agent for agent in agents 
@@ -49,9 +54,11 @@ class Wolf(Walker):
 
     def filter_packs(self, packs):
         """
-        Filter packs from list
+        Filter packs from list which are below the pack size threshold.
         Args:
             packs (list): The list of packs to filter.
+        Returns:
+            List of agents.
         """
         return [
             pack for pack in packs 
@@ -62,12 +69,17 @@ class Wolf(Walker):
         """
         Step function for the Wolf-object.
         """
-        logging.debug("Wolf info ID: {}, PACK: {}, POS: {}".format(self.unique_id, self.pack, self.pos))
+        logging.debug("Wolf info ID: {}, PACK: {}, POS: {}".format(
+            self.unique_id, self.pack, self.pos)
+        )
         if (self.pack):
             # If part of a pack, the pack controls the Wolf and the rest is
             # skipped. This should not happen and seeing this line indicates
             # an error in the model.
-            logging.debug("Wolf {} part of pack.".format(self))
+            logging.debug("Wolf {} part of pack. Check scheduler for \
+                inconsistencies. A wolf is somewhere not correctly added or \
+                removed from the scheduler.".format(self)
+            )
             return
         
         self.random_move()
@@ -104,7 +116,7 @@ class Wolf(Walker):
                 elk = [obj for obj in this_cell if isinstance(obj, Elk)]
 
                 if len(elk) > 0:
-                    if (random.random() < 0.1):
+                    if (random.random() < self.model.wolf_lone_attack_prob):
                         elk_to_eat = self.random.choice(elk)
                         self.energy += self.model.wolf_gain_from_food
 
@@ -170,6 +182,7 @@ class Pack(Walker):
             model     (mesa.Model): Model-object
             wolves          (list): List of Wolves initial
             moore           (bool): Whether the model uses Moore neighborhood.
+            pack_size_threshold (int): The pack size threshold.
         """
         super().__init__(unique_id, pos, model, moore=moore)
         self.wolves = wolves
@@ -187,23 +200,19 @@ class Pack(Walker):
             logging.debug("Pack size below minimum")
         else:
             logging.debug("Pack up to size. Start searching for Elk.")
-            if (self.move_towards_specified_kind(Elk, self.model.wolf_territorium, self.choose_elk_to_eat) is None):
+            if (self.move_towards_specified_kind(
+                    Elk, 
+                    self.model.wolf_territorium, 
+                    self.choose_elk_to_eat) 
+                    is None
+                ):
                 # No elk found, move random.
                 self.random_move()
 
-        # Check for elks in this cell grid. The pack already moved to this
-        # cell containing an Elk.
-        # this_cell = self.model.grid.get_cell_list_contents([self.pos])
-        # elk = [obj for obj in this_cell if isinstance(obj, Elk)]
-
-        # if (len(elk) > 0 and len(self.wolves) >= self.model.pack_size_threshold):
-        #     # Pack eats the elk, pack is going to disband.
-        #     self.pack_has_eaten(elk)
-        #     return
-
         # Select elk to be eaten
-        elk_in_radius = self.get_elk_in_radius()
-        number_elk_eaten = min(len(self.wolves), len(elk_in_radius)) # eat at most one elk per wolf, otherwise as much as available
+        elk_in_radius = self.get_elk_in_radius(self.model.wolf_territorium)
+        # Eat at most one elk per wolf, otherwise as much as available
+        number_elk_eaten = min(len(self.wolves), len(elk_in_radius)) 
         chosen_elk_to_eat = self.choose_elk_to_eat(elk_in_radius, number_elk_eaten) 
 
         if (len(chosen_elk_to_eat) > 0 and len(self.wolves) >= self.model.pack_size_threshold):
@@ -243,6 +252,8 @@ class Pack(Walker):
         Filter the list of packs.
         Args:
             packs (list): List of packs to filter.
+        Returns:
+            List of Pack agents.
         """
         return [pack for pack in packs if len(pack.wolves) < self.min_pack]
 
@@ -251,16 +262,18 @@ class Pack(Walker):
         Filter the list of wolves.
         Args:
             agents (list): List of wolf-agents to filter.
+        Returns:
+            List of Wolf agents.
         """
         return [
-            agent for agent in agents if agent.energy < 20 and not agent.pack
+            agent for agent in agents if agent.energy < self.model.energy_threshold and not agent.pack
         ]
 
     def find_wolf_for_pack(self):
         """
         Find a wolf in the neighborhood.
         """
-        agent = self.move_towards_specified_kind(Wolf, 4, self.filter_wolves)
+        agent = self.move_towards_specified_kind(Wolf, self.model.wolf_territorium, self.filter_wolves)
         if (agent):
             logging.debug("Next wolf found is: {}".format(agent))
             logging.debug("Pack size is now {}".format(len(self.wolves)))
@@ -272,7 +285,7 @@ class Pack(Walker):
         """
         Find a pack in the neighborhood.
         """
-        pack = self.move_towards_specified_kind(Pack, 4, self.filter_func_pack)
+        pack = self.move_towards_specified_kind(Pack, self.model.wolf_territorium, self.filter_func_pack)
         if (pack):
             logging.debug("Next pack found is: {}".format(pack))
             logging.debug("Pack size is now {}".format(len(self.wolves)))
@@ -312,15 +325,21 @@ class Pack(Walker):
             wolf (Agent): The Wolf agent to remove from the pack.
         """
         logging.debug("Removing Wolf")
-        logging.debug("Wolf info ID: {}, PACK: {}, POS: {}".format(wolf.unique_id, wolf.pack, wolf.pos))
+        logging.debug("Wolf info ID: {}, PACK: {}, POS: {}".format(
+            wolf.unique_id, wolf.pack, wolf.pos)
+        )
         wolf.pack = False
         self.model.schedule.add(wolf)
         self.model.grid.place_agent(wolf, self.pos)
         self.wolves.remove(wolf)
 
-    def get_elk_in_radius(self,radius=4):
+    def get_elk_in_radius(self, radius):
         """
         Checks pack radius for available elk
+        Args:
+            radius (int): The radius to look for elk.
+        Returns:
+            List of elk Agent objects.
         """
         agents_in_radius = self.model.grid.get_neighbors(
             self.pos,
@@ -339,6 +358,9 @@ class Pack(Walker):
         """
         Chooses elk to eat based on fitted polynomial to the probability 
         curve of elk being killed by wolf based on age
+        Args:
+            elk (list): The list of Elk to choose from.
+            number (int, optional): The amount of elk to eat.
         """
 
         if len(elk) == 0:
@@ -362,16 +384,15 @@ class Pack(Walker):
         """
         Pack has eaten. Add kills to wolf, add energy and disband the pack.
         Args:
-            elk (Agent): The Elk-agent to eat.
+            elk_to_eat (Agent): The Elk-agent to eat.
         """
-        # elk_to_eat = self.random.choice(elk)
-        # elk_to_eat = self.choose_elk_to_eat(elk)
-
         # Remove elk
         for elk in elk_to_eat:
             self.model.grid.remove_agent(elk)
             self.model.schedule.remove(elk)
-        logging.debug('Pack has eated, disbanding pack with size {}'.format(len(self.wolves)))
+        logging.debug('Pack has eated, disbanding pack with size {}'.format(
+            len(self.wolves))
+        )
         for wolf in self.wolves:
             wolf.energy += self.model.wolf_gain_from_food*len(elk_to_eat)
             wolf.kills += 1

@@ -1,21 +1,19 @@
 """
-GROUP: LIMPENS (9)
-DATE: 18 January 2021
-AUTHOR(S): Karlijn Limpens
-           Joos Akkerman
-           Guido Vaessen
-           Stijn van den Berg
-           David Puroja 
-DESCRIPTION: 
-"""
-"""
-Walker class, with functions to move to certain kind so packs can be created
-in the ABM. Also, distance (steps to the point in the grid) can be measured to
-check the closest one and move in that direction.
+GROUP:       LIMPENS (9)
+DATE:        18 January 2021
+AUTHOR(S):   Karlijn Limpens
+             Joos Akkerman
+             Guido Vaessen
+             Stijn van den Berg
+             David Puroja 
+DESCRIPTION: Walker class, with functions to move to certain kind so packs can 
+             be created in the ABM. Also, distance (steps to the point in the 
+             grid) can be measured to check the closest one and move in that 
+             direction.
 """
 
 from mesa import Agent
-import heapq  # For efficient sorting of nearby agents
+import heapq
 import random
 
 class Walker(Agent):
@@ -31,11 +29,11 @@ class Walker(Agent):
         moore: bool = True
     ):
         """
-        grid: The MultiGrid object in which the agent lives.
-        x: The agent's current x coordinate
-        y: The agent's current y coordinate
-        moore: If True, may move in all 8 directions.
-                Otherwise, only up, down, left, right.
+        grid (object):           The MultiGrid object in which the agent lives.
+        x (int):                 The agent's current x coordinate
+        y (int):                 The agent's current y coordinate
+        moore (bool, optional):  If True, may move in all 8 directions.
+                                 Otherwise, only up, down, left, right.
         """
         super().__init__(unique_id, model)
         self.pos = pos
@@ -45,7 +43,6 @@ class Walker(Agent):
         """
         Step one cell in any allowable direction.
         """
-        # Pick the next cell from the adjacent cells.
         next_moves = self.model.grid.get_neighborhood(
             self.pos,
             self.moore,
@@ -57,6 +54,12 @@ class Walker(Agent):
     def move_towards_own_kind(self, radius: int, filter_func: callable = None):
         """
         Moves agent toward the same kind.
+        Args:
+            radius (int):                     The radius to search for another 
+                                              agent.
+            filter_func (callable, optional): A function which returns a list
+                                              of agents, filtered based on 
+                                              criteria in the filter_func.
         """
         return self.move_towards_specified_kind(
             type(self),
@@ -70,6 +73,16 @@ class Walker(Agent):
         radius: int,
         filter_func: callable = None
     ):
+        """
+        Moves agent toward specific kind.
+        Args:
+            agent_type (class):               The type of agent to move to.
+            radius (int):                     The radius to search for another 
+                                              agent.
+            filter_func (callable, optional): A function which returns a list
+                                              of agents, filtered based on 
+                                              criteria in the filter_func.
+        """
         # Get neighborhood first:
         neighbours = self.model.grid.get_neighbors(
             self.pos,
@@ -91,7 +104,13 @@ class Walker(Agent):
             return None
 
     def __get_closest_agents(self, agent_list: list):
-        print(agent_list)
+        """
+        Returns the closest agent.
+        Args:
+            agent_list (list): List of Agent objects.
+        Returns:
+            Closest agent in distance.
+        """
         heap = []
         [
             heapq.heappush(

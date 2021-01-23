@@ -1,23 +1,26 @@
 """
-GROUP: LIMPENS (9)
-DATE: 18 January 2021
-AUTHOR(S): Karlijn Limpens
-           Joos Akkerman
-           Guido Vaessen
-           Stijn van den Berg
-           David Puroja 
-DESCRIPTION: 
-"""
+GROUP:       LIMPENS (9)
+DATE:        18 January 2021
+AUTHOR(S):   Karlijn Limpens
+             Joos Akkerman
+             Guido Vaessen
+             Stijn van den Berg
+             David Puroja
+DESCRIPTION: Class containing the definitions to run the model. This file
+             contains the default values to run the model, the setup of the
+             fitting functions for the elk reproduction rate and the
+             probability of wolves killing elk.
 
+            A small part of the code (Agent initialization) is from Mesa
+            Examples:
+            https://github.com/projectmesa/mesa/tree/master/examples/wolf_sheep
+"""
 
 from mesa import Model
 from mesa.space import MultiGrid
 from mesa.datacollection import DataCollector
 
-from collections import defaultdict
 import logging
-import uuid
-
 import numpy as np
 import pandas as pd
 
@@ -32,7 +35,7 @@ class WolfElk(Model):
     """
     description = (
         "A model for simulating wolf and elk (predator-prey) \
-         ecosystem modelling."
+         ecosystem modelling with pack-behaviour and real world fitted data."
     )
 
     def __init__(
@@ -49,21 +52,35 @@ class WolfElk(Model):
         energy_threshold=10,
         pack_size_threshold=4,
         wolf_territorium=4,
-        polynomial_degree=10
+        polynomial_degree=10,
+        wolf_lone_attack_prob=0.2,
+        time_per_step=1/26
     ):
         """
         Create a new Wolf-elk model with the given parameters.
 
         Args:
-            initial_elk: Number of elk to start with
-            initial_wolves: Number of wolves to start with
-            elk_reproduce: Probability of each elk reproducing each step
-            wolf_reproduce: Probability of each wolf reproducing each step
+            height:              Height of the grid
+            width:               Width of the grid
+            initial_elk:         Number of elk to start with
+            initial_wolves:      Number of wolves to start with
+            elk_reproduce:       Probability of each elk reproducing each step
+            wolf_reproduce:      Probability of each wolf reproducing each step
             wolf_gain_from_food: Energy a wolf gains from eating a elk
-            grass: Whether to have the elk eat grass for energy
             grass_regrowth_time: How long it takes for a grass patch to regrow
                                  once it is eaten
-            elk_gain_from_food: Energy elk gain from grass, if enabled.
+            elk_gain_from_food:  Energy elk gain from grass, if enabled
+            energy_threshold:    The threshold when wolves are going to look
+                                 for elk to eat
+            pack_size_threshold: The minimum size for a pack to attack an elk
+            wolf_territorium:    The radius of the wolf to search for a pack
+                                 to join and elk to eat
+            polynomial_degree:   The degree of the polynomial where the real
+                                 world data is fitted
+            wolf_lone_attack_prob: The probability a wolf can eat an elk when
+                                 attacking the elk alone.
+            time_per_step:       The real time duration simulated in each
+                                 time step
         """
         super().__init__()
         # Set parameters
@@ -79,16 +96,17 @@ class WolfElk(Model):
         self.energy_threshold = energy_threshold
         self.pack_size_threshold = pack_size_threshold
         self.wolf_territorium = wolf_territorium
-
+        self.wolf_lone_attack_prob = wolf_lone_attack_prob
         self.polynomial_degree = polynomial_degree
         self.elk_reproduction_params = self.fit_elk_reproduction_chance()
         self.elk_wolfkill_params = self.fit_elk_wolfkill_by_age()
+        self.time_per_step = time_per_step
 
         self.schedule = RandomActivationByBreed(self)
         self.grid = MultiGrid(self.height, self.width, torus=True)
         self.datacollector = DataCollector(
             {
-                "Wolves": lambda m: m.get_wolf_breed_count(), #lambda m: m.schedule.get_breed_count(Wolf),#
+                "Wolves": lambda m: m.get_wolf_breed_count(), 
                 "Elks": lambda m: m.schedule.get_breed_count(Elk),
                 "Elks age": lambda m: m.schedule.get_average_age(Elk),
                 "Killed Elks/Wolf": lambda m:
@@ -101,8 +119,8 @@ class WolfElk(Model):
         for _ in range(self.initial_elk):
             x = self.random.randrange(self.width)
             y = self.random.randrange(self.height)
-            age = self.random.randrange(0, 20)
-            energy = self.random.randrange(2 * self.elk_gain_from_food)
+            age = self.random.randrange(0, 20) #max age
+            energy = self.random.uniform(self.elk_gain_from_food, 2 * self.elk_gain_from_food)
             elk = Elk(self.next_id(), (x, y), self, True, age, energy)
             self.grid.place_agent(elk, (x, y))
             self.schedule.add(elk)
@@ -111,7 +129,7 @@ class WolfElk(Model):
         for _ in range(self.initial_wolves):
             x = self.random.randrange(self.width)
             y = self.random.randrange(self.height)
-            energy = self.random.randrange(2 * self.wolf_gain_from_food)
+            energy = self.random.uniform(self.energy_threshold, 2 * self.energy_threshold)
             wolf = Wolf(self.next_id(), (x, y), self, True, energy)
             self.grid.place_agent(wolf, (x, y))
             self.schedule.add(wolf)
@@ -139,6 +157,10 @@ class WolfElk(Model):
         self.datacollector.collect(self)
 
     def get_wolf_breed_count(self):
+        """
+        Helper function to count the total wolves in the model, combining
+        wolves who are in Packs and lone wolves.
+        """
         wolves = self.schedule.get_breed_count(Wolf)
         wolves += sum([len(pack) for pack in self.schedule.get_breed_list(Pack)])
         return wolves
@@ -146,6 +168,8 @@ class WolfElk(Model):
     def fit_elk_reproduction_chance(self):
         """
         Fits a polynomial to the elk reproduction data, used for interpolation
+        Returns:
+            Coefficients for polynomial.
         """
         df = pd.read_csv('wolf_elk/empirical_data/elk_ratesbyage.csv', sep=',')
         all_ages = np.append([1],df['age'].values)
@@ -159,7 +183,10 @@ class WolfElk(Model):
 
     def fit_elk_wolfkill_by_age(self):
         """
-        Fits a polynomial to the data of wolf-kills per elk age, used for interpolation
+        Fits a polynomial to the data of wolf-kills per elk age, used for 
+        interpolation.
+        Returns:
+            Coefficients for polynomial.
         """
         df = pd.read_csv('wolf_elk/empirical_data/elk_ratesbyage.csv', sep=',')
         all_ages = np.append([1],df['age'].values)
@@ -169,15 +196,28 @@ class WolfElk(Model):
         degree = self.polynomial_degree
         P_kill_by_wolf = 1100/1350
 
+        def bayes_func(i):
+            return (
+                (all_perc_killed[i] / all_surv_rate[i] * P_kill_by_wolf) \
+                / all_surv_rate[i]
+            )
+
         # Apply Bayes' Theorem
-        P_kill_wolf_byage = np.array([((all_perc_killed[i]/all_surv_rate[i]*P_kill_by_wolf)/all_surv_rate[i]) for i,a in enumerate(all_ages)])
+        P_kill_wolf_byage = np.array([
+            bayes_func(i) for i, _ in enumerate(all_ages)
+        ])
 
         # Fit polynomial
         params = np.polyfit(all_ages, P_kill_wolf_byage, deg=degree)
-
         return params
 
     def step(self):
+        """
+        Steps through the model.
+        """
+        # Random activation by breed is set to False by default since the pack
+        # agent creates trouble with the scheduler when enabled, throwing 
+        # KeyErrors.
         self.schedule.step(False)
         # collect data
         self.datacollector.collect(self)
@@ -191,19 +231,24 @@ class WolfElk(Model):
         )
 
     def run_model(self, step_count=200):
-        logging.debug(
+        """
+        Runs the model.
+        Args:
+            step_count (int, optional): The amount of steps to simulate.
+        """
+        logging.info(
             "Initial number wolves: %s", self.schedule.get_breed_count(Wolf)
         )
-        logging.debug(
+        logging.info(
             "Initial number elk: %s", self.schedule.get_breed_count(Elk)
         )
 
         for _ in range(step_count):
             self.step()
 
-        logging.debug(
+        logging.info(
             "Final number wolves: %s", self.schedule.get_breed_count(Wolf)
         )
-        logging.debug(
+        logging.info(
             "Final number elk: %s", self.schedule.get_breed_count(Elk)
         )
