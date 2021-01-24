@@ -131,7 +131,7 @@ class SensitivityAnalysis():
         else:
             indices = s['S' + i]
             errors = s['S' + i + '_conf']
-            plt.figure()
+            plt.figure(figsize=(10,8))
 
         l = len(indices)
 
@@ -141,7 +141,8 @@ class SensitivityAnalysis():
         plt.errorbar(indices, range(l), xerr=errors, linestyle='None', marker='o')
         plt.axvline(0, c='k')
         plt.grid(True)
-        plt.savefig("{}.pdf".format(str(params)))
+        # plt.show()
+        plt.savefig("{}.pdf".format(title), dpi=300, bbox_inches='tight')
 
 if __name__ == "__main__":
     """
@@ -174,19 +175,19 @@ if __name__ == "__main__":
     }
 
     SA = SensitivityAnalysis(problem_set, replicates, max_steps, distinct_samples)
-    analysis_data = SA.run_analysis(distinct_samples, model_reporters)
-    analysis_data.to_csv('sa_result.csv')
-
+    # analysis_data = SA.run_analysis(distinct_samples, model_reporters)
+    # analysis_data.to_csv('sa_result.csv')
+    analysis_data = pd.read_csv('sa_result.csv')
     problem = SA.parse_problems(problem_set)
     Si_elk = sobol.analyze(problem, analysis_data['Elk'].values, calc_second_order=False,print_to_console=True)
     Si_wolves = sobol.analyze(problem, analysis_data['Wolves'].values, calc_second_order=False,print_to_console=True)
     Si_pack = sobol.analyze(problem, analysis_data['Packs'].values, calc_second_order=False,print_to_console=True)
     Si_kills = sobol.analyze(problem, analysis_data['Killed Elks/Wolf'].values, calc_second_order=False,print_to_console=True)
     Si_age = sobol.analyze(problem, analysis_data['Elks age'].values, calc_second_order=False,print_to_console=True)
+    Si_analyzed = (Si_elk, Si_wolves, Si_pack, Si_kills, Si_age)
+    for Si, name in zip(Si_analyzed, ['Elk', 'Wolves','Packs','Killed Elks_Wolf','Elks age']):
+        # First order
+        SA.plot_index(Si, problem['names'], '1', 'First order sensitivity for {}'.format(name))
 
-    # for Si in (Si_elk, Si_wolves, Si_pack, Si_kills, Si_age):
-    #     # First order
-    #     SA.plot_index(Si, problem['names'], '1', 'First order sensitivity')
-
-    #     # Total order
-    #     SA.plot_index(Si, problem['names'], 'T', 'Total order sensitivity')
+        # Total order
+        SA.plot_index(Si, problem['names'], 'T', 'Total order sensitivity for {}'.format(name))
