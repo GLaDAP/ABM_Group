@@ -42,16 +42,15 @@ class WolfElk(Model):
         self,
         height=40,
         width=40,
-        initial_elk=100,
-        initial_wolves=50,
-        elk_reproduce=0.04,
-        wolf_reproduce=0.05,
-        wolf_gain_from_food=20,
+        initial_elk=200,
+        initial_wolves=20,
+        wolf_reproduce=0.03,
+        wolf_gain_from_food=30,
         grass_regrowth_time=30,
-        elk_gain_from_food=4,
+        elk_gain_from_food=6,
         energy_threshold=10,
-        pack_size_threshold=4,
-        wolf_territorium=4,
+        pack_size_threshold=2,
+        wolf_territorium=8,
         polynomial_degree=10,
         wolf_lone_attack_prob=0.2,
         time_per_step=1/26
@@ -88,7 +87,6 @@ class WolfElk(Model):
         self.width = width
         self.initial_elk = initial_elk
         self.initial_wolves = initial_wolves
-        self.elk_reproduce = elk_reproduce
         self.wolf_reproduce = wolf_reproduce
         self.wolf_gain_from_food = wolf_gain_from_food
         self.grass_regrowth_time = grass_regrowth_time

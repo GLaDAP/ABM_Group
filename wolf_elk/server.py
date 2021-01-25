@@ -85,9 +85,6 @@ model_params = {
     "initial_elk": UserSettableParameter(
         "slider", "Initial Elk Population", 100, 50, 500
     ),
-    "elk_reproduce": UserSettableParameter(
-        "slider", "Elk Reproduction Rate", 0.04, 0.01, 1.0, 0.01
-    ),
     "initial_wolves": UserSettableParameter(
         "slider", "Initial Wolf Population", 20, 10, 100
     ),
