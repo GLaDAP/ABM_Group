@@ -98,6 +98,7 @@ class WolfElk(Model):
         self.wolf_territorium = wolf_territorium
         self.wolf_lone_attack_prob = wolf_lone_attack_prob
         self.polynomial_degree = polynomial_degree
+        self.elk_age_distribution = self.fit_elk_age_distr()
         self.elk_reproduction_params = self.fit_elk_reproduction_chance()
         self.elk_wolfkill_params = self.fit_elk_wolfkill_by_age()
         self.time_per_step = time_per_step
@@ -119,7 +120,7 @@ class WolfElk(Model):
         for _ in range(self.initial_elk):
             x = self.random.randrange(self.width)
             y = self.random.randrange(self.height)
-            age = self.random.randrange(0, 20) #max age
+            age = np.random.choice(np.arange(1,20.01,1/26),p=self.elk_age_distribution)
             energy = self.random.uniform(self.elk_gain_from_food, 2 * self.elk_gain_from_food)
             elk = Elk(self.next_id(), (x, y), self, True, age, energy)
             self.grid.place_agent(elk, (x, y))
@@ -180,6 +181,31 @@ class WolfElk(Model):
         params = params = np.polyfit(all_ages, all_preg_rate, deg=degree)
 
         return params
+
+    def fit_elk_age_distr(self):
+        """
+        Fits a polynomial to the survival rate per elk age, used for
+        interpolation.
+        Returns:
+            Probability distribution of elk ages
+        """
+        df = pd.read_csv('wolf_elk/empirical_data/elk_ratesbyage.csv', sep=',')
+        all_ages = np.append([1],df['age'].values)
+        all_surv_rate = np.append([0.9],df['surv_rate'].values)
+
+        # Compute share of population by age
+        all_surv_rate = all_surv_rate/sum(all_surv_rate)
+
+        degree = self.polynomial_degree
+
+        # Fit polynomial
+        params = np.polyfit(all_ages, all_surv_rate, deg=degree)
+
+        # Compute chances
+        chances = np.array([sum([params[i]*age**(degree-i) for i in range(degree+1)]) for age in np.arange(1,20.01,1/26)])
+        chances = chances/sum(chances)
+
+        return chances
 
     def fit_elk_wolfkill_by_age(self):
         """
