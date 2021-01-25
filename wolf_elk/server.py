@@ -83,10 +83,13 @@ model_params = {
         "slider", "Grass Regrowth Time", 20, 1, 50
     ),
     "initial_elk": UserSettableParameter(
-        "slider", "Initial Elk Population", 100, 50, 500
+        "slider", "Initial Elk Population", 200, 50, 500
     ),
     "initial_wolves": UserSettableParameter(
         "slider", "Initial Wolf Population", 20, 10, 100
+    ),
+    "pack_size_threshold": UserSettableParameter(
+        "slider", "Minimum Pack size", 1, 1, 4
     ),
     "wolf_reproduce": UserSettableParameter(
         "slider",

@@ -36,7 +36,11 @@ class SensitivityAnalysis():
         """
         Args:
             problems (dict): Dictionary containing the model parameters to
-                             analyse. This dictionary
+                             analyse. This dictionary has as key the variable
+                             name in the model and as value a list of bounds.
+            replicates (int): Amount of replicates
+            max_steps (int): Maximum steps per iteration
+            distinct_samples (int): 
         """
         self.problems = self.parse_problems(problems)
         self.replicates = replicates
@@ -73,7 +77,7 @@ class SensitivityAnalysis():
         param_values = saltelli.sample(self.problems, distinct_samples, False)
 
         data = pd.DataFrame(
-            index=[1],#range(replicates * len(param_values)), 
+            index=[1], # concatenation is done later.
             columns=self.problems['names']
         )
         data['Run'] = None
@@ -110,7 +114,6 @@ class SensitivityAnalysis():
         data.iloc[0, len(self.problems['names']):len(self.problems['names'])+len(vals)] = iteration_data
         self.count += 1
         return data
-        # print(f'{count / (len(param_values) * (replicates)) * 100:.2f}% done')
 
     def plot_index(self, s, params, i, title=''):
         """
@@ -152,10 +155,11 @@ if __name__ == "__main__":
     """
     Define Sensitivity Parameters below
     """
-    replicates = 10
-    max_steps = 2#200
-    distinct_samples = 2#500
+    run_analysis = False
 
+    replicates = 10
+    max_steps = 200
+    distinct_samples = 500
     # Set the outputs
     model_reporters = {
         "Wolves": lambda m: m.get_wolf_breed_count(),
@@ -170,7 +174,7 @@ if __name__ == "__main__":
     problem_set = {
         'elk_reproduce':         [0.01, 0.10],
         'wolf_reproduce':        [0.01, 0.1],
-        'pack_size_threshold':   [2, 4],
+        'pack_size_threshold':   [1, 4],
         'energy_threshold':      [5, 30],
         'wolf_territorium':      [2, 8],
         'wolf_lone_attack_prob': [0.1, 0.5],
@@ -178,20 +182,23 @@ if __name__ == "__main__":
         'wolf_gain_from_food':   [10,40]
     }
 
+    # Initialize the 
     SA = SensitivityAnalysis(problem_set, replicates, max_steps, distinct_samples, model_reporters)
-    analysis_data = SA.run_analysis(distinct_samples)
-    analysis_data.to_csv('sa_result.csv')
-    # analysis_data = pd.read_csv('sa_result.csv')
-    # problem = SA.parse_problems(problem_set)
-    # Si_elk = sobol.analyze(problem, analysis_data['Elk'].values, calc_second_order=False,print_to_console=True)
-    # Si_wolves = sobol.analyze(problem, analysis_data['Wolves'].values, calc_second_order=False,print_to_console=True)
-    # Si_pack = sobol.analyze(problem, analysis_data['Packs'].values, calc_second_order=False,print_to_console=True)
-    # Si_kills = sobol.analyze(problem, analysis_data['Killed Elks/Wolf'].values, calc_second_order=False,print_to_console=True)
-    # Si_age = sobol.analyze(problem, analysis_data['Elks age'].values, calc_second_order=False,print_to_console=True)
-    # Si_analyzed = (Si_elk, Si_wolves, Si_pack, Si_kills, Si_age)
-    # for Si, name in zip(Si_analyzed, ['Elk', 'Wolves','Packs','Killed Elks_Wolf','Elks age']):
-    #     # First order
-    #     SA.plot_index(Si, problem['names'], '1', 'First order sensitivity for {}'.format(name))
 
-    #     # Total order
-    #     SA.plot_index(Si, problem['names'], 'T', 'Total order sensitivity for {}'.format(name))
+    if (run_analysis):
+        analysis_data = SA.run_analysis(distinct_samples)
+        analysis_data.to_csv('sa_result.csv')
+    else:
+        analysis_data = pd.read_csv('sa_result.csv')
+
+    problem = SA.parse_problems(problem_set)
+    Si_elk = sobol.analyze(problem, analysis_data['Elks'].values, calc_second_order=False,print_to_console=True)
+    Si_wolves = sobol.analyze(problem, analysis_data['Wolves'].values, calc_second_order=False,print_to_console=True)
+    Si_kills = sobol.analyze(problem, analysis_data['Killed Elks/Wolf'].values, calc_second_order=False,print_to_console=True)
+    Si_age = sobol.analyze(problem, analysis_data['Elks age'].values, calc_second_order=False,print_to_console=True)
+    Si_analyzed = (Si_elk, Si_wolves, Si_kills, Si_age)
+    for Si, name in zip(Si_analyzed, ['Elks', 'Wolves','Killed Elks_Wolf','Elks age']):
+        # First order
+        SA.plot_index(Si, problem['names'], '1', 'First order sensitivity for {}'.format(name))
+        # Total order
+        SA.plot_index(Si, problem['names'], 'T', 'Total order sensitivity for {}'.format(name))
