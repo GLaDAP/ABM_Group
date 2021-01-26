@@ -97,11 +97,11 @@ class SensitivityAnalysis():
         # Change parameters that should be integers
         data = copy.deepcopy(self.data_definition)
         vals = list(vals)
-        vals[2] = int(vals[2]) # Pack size
-        vals[3] = int(vals[3]) # Energy threshold
-        vals[4] = int(vals[4]) # Wolf territorium
-        vals[6] = int(vals[6]) # elk gain from food
-        vals[7] = int(vals[7]) # wolf gain from food
+        vals[1] = int(vals[1]) # Pack size
+        vals[2] = int(vals[2]) # Energy threshold
+        vals[3] = int(vals[3]) # Wolf territorium
+        vals[5] = int(vals[5]) # elk gain from food
+        vals[6] = int(vals[6]) # wolf gain from food
         # Transform to dict with parameter names and their values
         variable_parameters = {}
         for name, val in zip(self.problems['names'], vals):
@@ -172,7 +172,6 @@ if __name__ == "__main__":
     # Define variables which should be included in the sensitivity analysis
     # with appropiate boundries.
     problem_set = {
-        'elk_reproduce':         [0.01, 0.10],
         'wolf_reproduce':        [0.01, 0.1],
         'pack_size_threshold':   [1, 4],
         'energy_threshold':      [5, 30],
