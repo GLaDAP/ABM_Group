@@ -238,6 +238,8 @@ class WolfElk(Model):
     def step(self):
         """
         Steps through the model.
+        Returns
+            Dictionary with the 
         """
         # Random activation by breed is set to False by default since the pack
         # agent creates trouble with the scheduler when enabled, throwing 
@@ -245,20 +247,32 @@ class WolfElk(Model):
         self.schedule.step(False)
         # collect data
         self.datacollector.collect(self)
+
         logging.debug(
             [
                 self.schedule.time,
-                self.schedule.get_breed_count(Wolf),
+                self.get_wolf_breed_count(),
                 self.schedule.get_breed_count(Elk),
-                self.schedule.get_breed_count(Pack)
+                self.schedule.get_breed_count(Pack),
+                self.schedule.get_average_kills(Wolf)
             ]
         )
+
+        return {
+            "step":self.schedule.time,
+            "wolf":self.get_wolf_breed_count(),
+            "elk":  self.schedule.get_breed_count(Elk),
+            "pack": self.schedule.get_breed_count(Pack),
+            "average_kills":  self.schedule.get_average_kills(Wolf)
+        }
 
     def run_model(self, step_count=200):
         """
         Runs the model.
         Args:
             step_count (int, optional): The amount of steps to simulate.
+        Returns:
+            Pandas Dataframe with values.
         """
         logging.info(
             "Initial number wolves: %s", self.schedule.get_breed_count(Wolf)
@@ -267,8 +281,11 @@ class WolfElk(Model):
             "Initial number elk: %s", self.schedule.get_breed_count(Elk)
         )
 
+        result_dicts = []
+
         for _ in range(step_count):
-            self.step()
+            result = self.step()
+            result_dicts.append(result)
 
         logging.info(
             "Final number wolves: %s", self.schedule.get_breed_count(Wolf)
@@ -276,3 +293,4 @@ class WolfElk(Model):
         logging.info(
             "Final number elk: %s", self.schedule.get_breed_count(Elk)
         )
+        return pd.DataFrame(result_dicts)
