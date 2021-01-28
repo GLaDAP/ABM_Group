@@ -1,7 +1,7 @@
 import pandas as pd
-
+import numpy as np
 from wolf_elk.model import WolfElk
-
+from matplotlib import pyplot as plt
 class Runner():
     """
     Class to run the model given the amount of iterations and optional 
@@ -18,6 +18,33 @@ class Runner():
             result_df = model.run_model()
             df_list.append(result_df)
         return pd.concat(df_list, ignore_index=True)
+
+
+def get_statistics(dataframe, step_size=200):
+    """
+
+    """
+    dataframe = dataframe.set_index('step')
+    # list_df = [dataframe[i:i+step_size] for i in range(0,dataframe.shape[0], step_size)]
+    # df_concat = pd.concat((df1, df2))
+    by_row_index = dataframe.groupby(dataframe.index)
+    df_means = by_row_index.mean()
+    df_std = by_row_index.std()
+    print(df_means)
+    print(df_std)
+    return df_means, df_std
+
+def plot_mean_and_standard_deviation(df_mean, df_std, step_size=200):
+    x = np.linspace(0,200, 200)
+    for col in df_mean.columns:
+        _ = plt.figure(figsize=(10,8), dpi=150)
+        plt.title("Mean and Standard Deviation for {} value with {} steps".format(col, step_size))
+        plt.plot(x, df_mean[col], color='teal', label='Mean of {}'.format(col))
+        plt.fill_between(x, df_mean[col]-df_std[col], df_mean[col]+df_std[col], color='powderblue',label='error')
+        plt.grid(True)
+        plt.legend()
+        plt.show()
+
 
 if __name__ == "__main__":
     """
@@ -43,6 +70,7 @@ if __name__ == "__main__":
         'initial_wolves': 20
     }
     runner = Runner(parameters)
-    result_df = runner.run()
-
-    result_df.to_csv('model_result.csv')
+    result_df = runner.run(iterations=2)
+    mean, std = get_statistics(result_df)
+    plot_mean_and_standard_deviation(mean, std)
+    # result_df.to_csv('model_result.csv')
