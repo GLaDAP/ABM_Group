@@ -104,7 +104,7 @@ class WolfElk(Model):
         self.grid = MultiGrid(self.height, self.width, torus=True)
         self.datacollector = DataCollector(
             {
-                "Wolves": lambda m: m.get_wolf_breed_count(), 
+                "Wolves": lambda m: m.get_wolf_breed_count(),
                 "Elks": lambda m: m.schedule.get_breed_count(Elk),
                 "Elks age": lambda m: m.schedule.get_average_age(Elk),
                 "Killed Elks/Wolf": lambda m:
@@ -118,7 +118,7 @@ class WolfElk(Model):
             x = self.random.randrange(self.width)
             y = self.random.randrange(self.height)
             age = np.random.choice(
-                np.arange(1,20.01,1/26),p=self.elk_age_distribution)
+                np.arange(1, 20.01, 1/26), p=self.elk_age_distribution)
             energy = self.random.uniform(
                 self.elk_gain_from_food, 2 * self.elk_gain_from_food)
             elk = Elk(self.next_id(), (x, y), self, True, age, energy)
@@ -175,7 +175,7 @@ class WolfElk(Model):
             Coefficients for polynomial.
         """
         df = pd.read_csv('empirical_data/elk_ratesbyage.csv', sep=',')
-        all_ages = np.append([1],df['age'].values)
+        all_ages = np.append([1], df['age'].values)
         all_preg_rate = np.append([0], df['preg_rate'])/26
 
         degree = self.polynomial_degree
@@ -192,8 +192,8 @@ class WolfElk(Model):
             Probability distribution of elk ages
         """
         df = pd.read_csv('empirical_data/elk_ratesbyage.csv', sep=',')
-        all_ages = np.append([1],df['age'].values)
-        all_surv_rate = np.append([0.9],df['surv_rate'].values)
+        all_ages = np.append([1], df['age'].values)
+        all_surv_rate = np.append([0.9], df['surv_rate'].values)
 
         # Compute share of population by age
         all_surv_rate = all_surv_rate/sum(all_surv_rate)
@@ -207,7 +207,7 @@ class WolfElk(Model):
         chances = np.array([
             sum([
                 params[i]*age**(degree-i) for i in range(degree+1)
-            ]) for age in np.arange(1,20.01,1/26)
+            ]) for age in np.arange(1, 20.01, 1/26)
         ])
         chances = chances/sum(chances)
 
@@ -215,22 +215,22 @@ class WolfElk(Model):
 
     def fit_elk_wolfkill_by_age(self):
         """
-        Fits a polynomial to the data of wolf-kills per elk age, used for 
+        Fits a polynomial to the data of wolf-kills per elk age, used for
         interpolation.
         Returns:
             Coefficients for polynomial.
         """
         df = pd.read_csv('empirical_data/elk_ratesbyage.csv', sep=',')
-        all_ages = np.append([1],df['age'].values)
-        all_perc_killed = np.append([50],(df['perc_of_killed'].values)/2)/100
-        all_surv_rate = np.append([0.9],df['surv_rate'].values)
+        all_ages = np.append([1], df['age'].values)
+        all_perc_killed = np.append([50], (df['perc_of_killed'].values)/2)/100
+        all_surv_rate = np.append([0.9], df['surv_rate'].values)
 
         degree = self.polynomial_degree
         P_kill_by_wolf = 1100/1350
 
         def bayes_func(i):
             return (
-                (all_perc_killed[i] / all_surv_rate[i] * P_kill_by_wolf) \
+                (all_perc_killed[i] / all_surv_rate[i] * P_kill_by_wolf)
                 / all_surv_rate[i]
             )
 
@@ -247,10 +247,18 @@ class WolfElk(Model):
         """
         Steps through the model.
         Returns
-            Dictionary with the 
+            Dictionary with the model reporter statistics in the format:
+            {
+                'step': (int) step,
+                'wolf': (int) amount of wolves,
+                'elk' : (int) amount of elks,
+                'pack': (int) amount of packs,
+                'average_kills': (float) average kills per wolf,
+                'average_elk_age': (float) average age of elk
+            }
         """
         # Random activation by breed is set to False by default since the pack
-        # agent creates trouble with the scheduler when enabled, throwing 
+        # agent creates trouble with the scheduler when enabled, throwing
         # KeyErrors.
         self.schedule.step(False)
         # collect data
@@ -268,11 +276,11 @@ class WolfElk(Model):
         )
 
         return {
-            "step":self.schedule.time,
-            "wolf":self.get_wolf_breed_count(),
+            "step": self.schedule.time,
+            "wolf": self.get_wolf_breed_count(),
             "elk":  self.schedule.get_breed_count(Elk),
             "pack": self.schedule.get_breed_count(Pack),
-            "average_kills":  self.schedule.get_average_kills(Wolf),
+            "average_kills": self.schedule.get_average_kills(Wolf),
             "average_elk_age": self.schedule.get_average_age(Elk)
         }
 

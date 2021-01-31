@@ -5,7 +5,7 @@ AUTHOR(S):   Karlijn Limpens
              Joos Akkerman
              Guido Vaessen
              Stijn van den Berg
-             David Puroja 
+             David Puroja
 DESCRIPTION: This file contains lines to manage the logging in the model. Per
              default, verbose is set to False, muting all debugging
              information. If verbose is set to True, verbose information

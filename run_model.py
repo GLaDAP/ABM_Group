@@ -1,31 +1,50 @@
+"""
+GROUP:       LIMPENS (9)
+DATE:        18 January 2021
+AUTHOR(S):   Karlijn Limpens
+             Joos Akkerman
+             Guido Vaessen
+             Stijn van den Berg
+             David Puroja
+DESCRIPTION: This class is used to run the model multiple times and to save the
+             results of the model per timestep in a csv file. Parameters used
+             in the constructor of WolfElk can be manipulated using a
+             param dictionary which can be found in the __name__ == "__main__"
+             part.
+"""
+
 import pandas as pd
 import numpy as np
 from wolf_elk.model import WolfElk
 from matplotlib import pyplot as plt
-import os
-print(os.getcwd(), 'run model')
+
 
 class Runner():
     """
-    Class to run the model given the amount of iterations and optional 
-    parameters
+    Class to run the model given the amount of iterations and optional
+    parameters.
     """
     def __init__(self, params):
         self.params = params
 
-    def run(self, iterations=10):
+    def run(self, step_count, iterations=10):
         df_list = []
 
         for _ in range(iterations):
             model = WolfElk(**self.params)
-            result_df = model.run_model()
+            result_df = model.run_model(step_count)
             df_list.append(result_df)
         return pd.concat(df_list, ignore_index=True)
 
 
-def get_statistics(dataframe, step_size=200):
+def get_statistics(dataframe, step_size):
     """
-
+    Gets the statistics (mean and standard deviation) from the passed dataframe
+    returned by the model.
+    Args:
+        step_size (int): The step size used by the model.
+    Returns:
+        Two dataframes with the mean and standard deviation.
     """
     dataframe = dataframe.set_index('step')
     by_row_index = dataframe.groupby(dataframe.index)
@@ -34,15 +53,23 @@ def get_statistics(dataframe, step_size=200):
     return df_means, df_std
 
 
-def plot_mean_and_standard_deviation(df_mean, df_std, step_size=200):
-    x = np.linspace(0,200, 200)
+def plot_mean_and_standard_deviation(df_mean, df_std, step_size):
+    x = np.linspace(0, 200, 200)
     for col in df_mean.columns:
-        _ = plt.figure(figsize=(10,8), dpi=150)
-        plt.title("Mean and Standard Deviation for {} value with {} steps".format(col, step_size))
+        _ = plt.figure(figsize=(10, 8), dpi=150)
+        plt.title(
+            "Mean and Standard Deviation for {} value with {} steps".format(
+                col, step_size)
+        )
         plt.plot(x, df_mean[col], color='teal', label='Mean of {}'.format(col))
-        plt.fill_between(x, df_mean[col]-df_std[col], df_mean[col]+df_std[col], color='powderblue',label='error')
+        plt.fill_between(
+            x,
+            df_mean[col]-df_std[col],
+            df_mean[col]+df_std[col],
+            color='powderblue',
+            label='error'
+        )
         plt.grid(True)
-        # plt.xticks([round(i/26, 2) for i in range(1, len(df_mean) + 1) if i % 26 == 0])
         plt.legend()
         plt.show()
 
@@ -66,13 +93,12 @@ if __name__ == "__main__":
         wolf_lone_attack_prob=0.2,
         time_per_step=1/26
     """
-    parameters = { 
-        'initial_elk'   : 200, 
+    step_count = 200
+    parameters = {
+        'initial_elk': 200,
         'initial_wolves': 0
     }
     runner = Runner(parameters)
-    result_df = runner.run(iterations=2)
-    mean, std = get_statistics(result_df)
-    # plot_mean_and_standard_deviation(mean, std)
-    # result_df.to_csv('model_result_0wolves.csv')
-    # print(result_df)
+    result_df = runner.run(step_count, iterations=2)
+    mean, std = get_statistics(result_df, step_count)
+    result_df.to_csv('model_results.csv')

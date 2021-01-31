@@ -5,8 +5,8 @@ AUTHOR(S):   Karlijn Limpens
              Joos Akkerman
              Guido Vaessen
              Stijn van den Berg
-             David Puroja 
-DESCRIPTION: This class contains two definitions for agents: Wolf-Agents and 
+             David Puroja
+DESCRIPTION: This class contains two definitions for agents: Wolf-Agents and
              Pack-agents. A Wolf-agent moves freely as an individual in the
              model until it gets hungry: then it joins a Pack to attack an Elk.
 """
@@ -48,7 +48,7 @@ class Wolf(Walker):
             List of agents.
         """
         return [
-            agent for agent in agents 
+            agent for agent in agents
             if agent.energy < self.model.energy_threshold and not agent.pack
         ]
 
@@ -61,7 +61,7 @@ class Wolf(Walker):
             List of agents.
         """
         return [
-            pack for pack in packs 
+            pack for pack in packs
             if len(pack) < self.model.pack_size_threshold
         ]
 
@@ -78,10 +78,9 @@ class Wolf(Walker):
             # an error in the model.
             logging.debug("Wolf {} part of pack. Check scheduler for \
                 inconsistencies. A wolf is somewhere not correctly added or \
-                removed from the scheduler.".format(self)
-            )
+                removed from the scheduler.".format(self))
             return
-        
+
         self.random_move()
         self.energy -= 1
         if self.energy < self.model.energy_threshold:
@@ -102,11 +101,11 @@ class Wolf(Walker):
             )
             if (agent):
                 pack = Pack(
-                    self.model.next_id(), 
-                    self.pos, 
-                    self.model, 
-                    [], 
-                    self.moore, 
+                    self.model.next_id(),
+                    self.pos,
+                    self.model,
+                    [],
+                    self.moore,
                     self.model.pack_size_threshold
                 )
                 self.model.schedule.add(pack)
@@ -205,21 +204,24 @@ class Pack(Walker):
         else:
             logging.debug("Pack up to size. Start searching for Elk.")
             if (self.move_towards_specified_kind(
-                    Elk, 
-                    self.model.wolf_territorium, 
-                    self.choose_elk_to_eat) 
-                    is None
-                ):
+                    Elk,
+                    self.model.wolf_territorium,
+                    self.choose_elk_to_eat)
+                    is None):
                 # No elk found, move random.
                 self.random_move()
 
         # Select elk to be eaten
         elk_in_radius = self.get_elk_in_radius(self.model.wolf_territorium)
         # Eat at most one elk per wolf, otherwise as much as available
-        number_elk_eaten = min(len(self.wolves), len(elk_in_radius)) 
-        chosen_elk_to_eat = self.choose_elk_to_eat(elk_in_radius, number_elk_eaten) 
+        number_elk_eaten = min(len(self.wolves), len(elk_in_radius))
+        chosen_elk_to_eat = self.choose_elk_to_eat(
+            elk_in_radius,
+            number_elk_eaten
+        )
 
-        if (len(chosen_elk_to_eat) > 0 and 
+        if (
+            len(chosen_elk_to_eat) > 0 and
             len(self.wolves) >= self.model.pack_size_threshold
         ):
             # Pack eats all chosen elk, pack is going to disband.
@@ -272,7 +274,7 @@ class Pack(Walker):
             List of Wolf agents.
         """
         return [
-            agent for agent in agents \
+            agent for agent in agents
             if agent.energy < self.model.energy_threshold and not agent.pack
         ]
 
@@ -364,10 +366,10 @@ class Pack(Walker):
         ]
 
         return elk_in_radius
-    
+
     def choose_elk_to_eat(self, elk, number=1):
         """
-        Chooses elk to eat based on fitted polynomial to the probability 
+        Chooses elk to eat based on fitted polynomial to the probability
         curve of elk being killed by wolf based on age
         Args:
             elk (list): The list of Elk to choose from.
@@ -381,7 +383,7 @@ class Pack(Walker):
             param = self.model.elk_wolfkill_params
             degree = self.model.polynomial_degree
             return max(
-                0.001,sum([param[i]*age**(degree-i) for i in range(degree+1)])
+                0.001, sum([param[i]*age**(degree-i) for i in range(degree+1)])
             )
 
         # compute absolute and relative probabilities
