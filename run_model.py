@@ -25,14 +25,11 @@ def get_statistics(dataframe, step_size=200):
 
     """
     dataframe = dataframe.set_index('step')
-    # list_df = [dataframe[i:i+step_size] for i in range(0,dataframe.shape[0], step_size)]
-    # df_concat = pd.concat((df1, df2))
     by_row_index = dataframe.groupby(dataframe.index)
     df_means = by_row_index.mean()
     df_std = by_row_index.std()
-    print(df_means)
-    print(df_std)
     return df_means, df_std
+
 
 def plot_mean_and_standard_deviation(df_mean, df_std, step_size=200):
     x = np.linspace(0,200, 200)

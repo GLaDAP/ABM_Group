@@ -5,7 +5,7 @@ AUTHOR(S):  Karlijn Limpens
             Joos Akkerman
             Guido Vaessen
             Stijn van den Berg
-            David Puroja 
+            David Puroja
 DESCRIPTION:The scheduler which supports random activation and random
             activation by breed. This code is partially from Mesa Examples:
             https://github.com/projectmesa/mesa/tree/master/examples/wolf_sheep
@@ -95,7 +95,7 @@ class RandomActivationByBreed(RandomActivation):
         Returns a list with all the Agent from the specified breed.
         Args:
             breed_class (class): The class inherited from Agent.
-        Returns: 
+        Returns:
             A list with all the Agent from specified Breed.
         """
         return self.agents_by_breed[breed_class].values()
@@ -119,7 +119,7 @@ class RandomActivationByBreed(RandomActivation):
         Returns the average kills of all the agents of a certain breed in the
         queue.
         Args:
-            breed_class (class): The class inherited from Agent. This Agent 
+            breed_class (class): The class inherited from Agent. This Agent
                                  should contain a 'kills' property.
         Returns:
             Average kills per agent.

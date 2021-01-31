@@ -5,16 +5,17 @@ AUTHOR(S):   Karlijn Limpens
              Joos Akkerman
              Guido Vaessen
              Stijn van den Berg
-             David Puroja 
-DESCRIPTION: Walker class, with functions to move to certain kind so packs can 
-             be created in the ABM. Also, distance (steps to the point in the 
-             grid) can be measured to check the closest one and move in that 
+             David Puroja
+DESCRIPTION: Walker class, with functions to move to certain kind so packs can
+             be created in the ABM. Also, distance (steps to the point in the
+             grid) can be measured to check the closest one and move in that
              direction.
 """
 
 from mesa import Agent
 import heapq
 import random
+
 
 class Walker(Agent):
     """
@@ -55,10 +56,10 @@ class Walker(Agent):
         """
         Moves agent toward the same kind.
         Args:
-            radius (int):                     The radius to search for another 
+            radius (int):                     The radius to search for another
                                               agent.
             filter_func (callable, optional): A function which returns a list
-                                              of agents, filtered based on 
+                                              of agents, filtered based on
                                               criteria in the filter_func.
         """
         return self.move_towards_specified_kind(
@@ -77,10 +78,10 @@ class Walker(Agent):
         Moves agent toward specific kind.
         Args:
             agent_type (class):               The type of agent to move to.
-            radius (int):                     The radius to search for another 
+            radius (int):                     The radius to search for another
                                               agent.
             filter_func (callable, optional): A function which returns a list
-                                              of agents, filtered based on 
+                                              of agents, filtered based on
                                               criteria in the filter_func.
         """
         # Get neighborhood first:

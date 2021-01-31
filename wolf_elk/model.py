@@ -63,7 +63,6 @@ class WolfElk(Model):
             width:               Width of the grid
             initial_elk:         Number of elk to start with
             initial_wolves:      Number of wolves to start with
-            elk_reproduce:       Probability of each elk reproducing each step
             wolf_reproduce:      Probability of each wolf reproducing each step
             wolf_gain_from_food: Energy a wolf gains from eating a elk
             grass_regrowth_time: How long it takes for a grass patch to regrow
@@ -118,8 +117,10 @@ class WolfElk(Model):
         for _ in range(self.initial_elk):
             x = self.random.randrange(self.width)
             y = self.random.randrange(self.height)
-            age = np.random.choice(np.arange(1,20.01,1/26),p=self.elk_age_distribution)
-            energy = self.random.uniform(self.elk_gain_from_food, 2 * self.elk_gain_from_food)
+            age = np.random.choice(
+                np.arange(1,20.01,1/26),p=self.elk_age_distribution)
+            energy = self.random.uniform(
+                self.elk_gain_from_food, 2 * self.elk_gain_from_food)
             elk = Elk(self.next_id(), (x, y), self, True, age, energy)
             self.grid.place_agent(elk, (x, y))
             self.schedule.add(elk)
@@ -128,7 +129,8 @@ class WolfElk(Model):
         for _ in range(self.initial_wolves):
             x = self.random.randrange(self.width)
             y = self.random.randrange(self.height)
-            energy = self.random.uniform(self.energy_threshold, 2 * self.energy_threshold)
+            energy = self.random.uniform(
+                self.energy_threshold, 2 * self.energy_threshold)
             wolf = Wolf(self.next_id(), (x, y), self, True, energy)
             self.grid.place_agent(wolf, (x, y))
             self.schedule.add(wolf)
@@ -161,7 +163,9 @@ class WolfElk(Model):
         wolves who are in Packs and lone wolves.
         """
         wolves = self.schedule.get_breed_count(Wolf)
-        wolves += sum([len(pack) for pack in self.schedule.get_breed_list(Pack)])
+        wolves += sum([
+            len(pack) for pack in self.schedule.get_breed_list(Pack)
+        ])
         return wolves
 
     def fit_elk_reproduction_chance(self):
@@ -200,7 +204,11 @@ class WolfElk(Model):
         params = np.polyfit(all_ages, all_surv_rate, deg=degree)
 
         # Compute chances
-        chances = np.array([sum([params[i]*age**(degree-i) for i in range(degree+1)]) for age in np.arange(1,20.01,1/26)])
+        chances = np.array([
+            sum([
+                params[i]*age**(degree-i) for i in range(degree+1)
+            ]) for age in np.arange(1,20.01,1/26)
+        ])
         chances = chances/sum(chances)
 
         return chances

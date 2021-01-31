@@ -11,7 +11,6 @@ DESCRIPTION:This file contains code to show the web interface for the model.
             values and to change the canvas size.
             Part of the code (Base function setup) is from Mesa Examples:
             https://github.com/projectmesa/mesa/tree/master/examples/wolf_sheep
-
 """
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.modules import CanvasGrid, ChartModule
@@ -20,6 +19,7 @@ from mesa.visualization.UserParam import UserSettableParameter
 from .wolf import Wolf, Pack
 from .agents import Elk, GrassPatch
 from .model import WolfElk
+
 
 def wolf_elk_portrayal(agent):
     if agent is None:

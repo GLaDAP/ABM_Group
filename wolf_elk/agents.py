@@ -5,9 +5,9 @@ AUTHOR(S):  Karlijn Limpens
             Joos Akkerman
             Guido Vaessen
             Stijn van den Berg
-            David Puroja 
+            David Puroja
 DESCRIPTION:This class contains definitions of two of the four agents in this
-            model: the Elk-Agents and GrassPatch Agents. 
+            model: the Elk-Agents and GrassPatch Agents.
             A small part of the code (the GrassPatch) is from Mesa Examples:
             https://github.com/projectmesa/mesa/tree/master/examples/wolf_sheep
 """
@@ -78,7 +78,13 @@ class Elk(Walker):
         Computes the probability of reproduction based on the age of the elk
         """
         degree = self.model.polynomial_degree
-        return max(0,sum([self.model.elk_reproduction_params[i]*self.age**(degree-i) for i in range(degree+1)]))
+        return max(
+            0,
+            sum([
+                self.model.elk_reproduction_params[i]*self.age**(degree-i)
+                for i in range(degree+1)
+            ])
+        )
 
     # Equality operators to overrule comparison in the heapq
     def __eq__(self, other):
@@ -96,8 +102,8 @@ class GrassPatch(Agent):
         """
         Creates a new patch of grass
         Args:
-            grown (boolean): Whether the patch of grass is fully grown or not
-            countdown (int): Time for the patch of grass to be fully grown again
+            grown (boolean): Whether the patch of grass is fully grown or not.
+            countdown (int): Time for the patch of grass to be fully grown.
         """
         super().__init__(unique_id, model)
         self.fully_grown = fully_grown

@@ -84,18 +84,22 @@ class Wolf(Walker):
         
         self.random_move()
         self.energy -= 1
-        if self.energy < 20:
+        if self.energy < self.model.energy_threshold:
             """
             A wolf first tries to create a pack to hunt down an Elk.
             If that is not possible, a Wolf tries to kill the elk, but with
             a smaller probability of success.
             """
-            pack = self.move_towards_specified_kind(Pack, 4, self.filter_packs)
+            pack = self.move_towards_specified_kind(
+                Pack, self.model.wolf_territorium, self.filter_packs
+            )
             if (pack):
                 pack.add_wolf_to_pack(self)
                 return
 
-            agent = self.move_towards_own_kind(4, self.filter_func)
+            agent = self.move_towards_own_kind(
+                self.model.wolf_territorium, self.filter_func
+            )
             if (agent):
                 pack = Pack(
                     self.model.next_id(), 
@@ -215,7 +219,9 @@ class Pack(Walker):
         number_elk_eaten = min(len(self.wolves), len(elk_in_radius)) 
         chosen_elk_to_eat = self.choose_elk_to_eat(elk_in_radius, number_elk_eaten) 
 
-        if (len(chosen_elk_to_eat) > 0 and len(self.wolves) >= self.model.pack_size_threshold):
+        if (len(chosen_elk_to_eat) > 0 and 
+            len(self.wolves) >= self.model.pack_size_threshold
+        ):
             # Pack eats all chosen elk, pack is going to disband.
             self.pack_has_eaten(chosen_elk_to_eat)
             return
@@ -266,14 +272,17 @@ class Pack(Walker):
             List of Wolf agents.
         """
         return [
-            agent for agent in agents if agent.energy < self.model.energy_threshold and not agent.pack
+            agent for agent in agents \
+            if agent.energy < self.model.energy_threshold and not agent.pack
         ]
 
     def find_wolf_for_pack(self):
         """
         Find a wolf in the neighborhood.
         """
-        agent = self.move_towards_specified_kind(Wolf, self.model.wolf_territorium, self.filter_wolves)
+        agent = self.move_towards_specified_kind(
+            Wolf, self.model.wolf_territorium, self.filter_wolves
+        )
         if (agent):
             logging.debug("Next wolf found is: {}".format(agent))
             logging.debug("Pack size is now {}".format(len(self.wolves)))
@@ -285,7 +294,9 @@ class Pack(Walker):
         """
         Find a pack in the neighborhood.
         """
-        pack = self.move_towards_specified_kind(Pack, self.model.wolf_territorium, self.filter_func_pack)
+        pack = self.move_towards_specified_kind(
+            Pack, self.model.wolf_territorium, self.filter_func_pack
+        )
         if (pack):
             logging.debug("Next pack found is: {}".format(pack))
             logging.debug("Pack size is now {}".format(len(self.wolves)))
@@ -369,7 +380,9 @@ class Pack(Walker):
         def prob_killedbywolf_byage(age):
             param = self.model.elk_wolfkill_params
             degree = self.model.polynomial_degree
-            return max(0.001,sum([param[i]*age**(degree-i) for i in range(degree+1)]))
+            return max(
+                0.001,sum([param[i]*age**(degree-i) for i in range(degree+1)])
+            )
 
         # compute absolute and relative probabilities
         P_per_elk = [prob_killedbywolf_byage(ind_elk.age) for ind_elk in elk]

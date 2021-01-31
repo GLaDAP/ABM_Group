@@ -1,4 +1,4 @@
-# Wolf-Sheep Predation Model
+# Wolf-Elk Predation Model
 
 ## Summary
 

@@ -6,6 +6,8 @@ AUTHOR(S):  Karlijn Limpens
             Guido Vaessen
             Stijn van den Berg
             David Puroja
+
+DESCRIPTION: File to start the web interface for this model.
 """
 from wolf_elk.server import server
 

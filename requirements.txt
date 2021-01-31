@@ -1,1 +1,3 @@
 mesa
+pandas
+matplotlib
