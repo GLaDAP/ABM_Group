@@ -59,6 +59,7 @@ Then open your browser to [http://127.0.0.1:8521/](http://127.0.0.1:8521/) and p
 * ``population data exploration/Population Exploration.ipynb``: Notebook used to analyze data from Yellowstone Park North regarding the Elk and Wolves.
 * ``population data exploration/elk_deathrate_pregrate.csv``: Data-file with elk age rates from Northern Yellowstone park.
 * ``population data exploration/elk_wolves_pop_YSnorth.csv``: Data file with population sizes for elk and wolves in Yellowstone Park North.
+* ``results.ipynb``: Notebook used to generate result plots.
 ## Further Reading
 
 Part of the code used in this model is based on the Mesa examples repository found here: [Wolf-Sheep-Example](https://github.com/projectmesa/mesa/tree/master/examples/wolf_sheep)
