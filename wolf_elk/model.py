@@ -27,6 +27,8 @@ import pandas as pd
 from .agents import Elk, GrassPatch
 from .wolf import Wolf, Pack
 from .schedule import RandomActivationByBreed
+import os
+print(os.getcwd())
 
 
 class WolfElk(Model):
@@ -170,7 +172,7 @@ class WolfElk(Model):
         Returns:
             Coefficients for polynomial.
         """
-        df = pd.read_csv('wolf_elk/empirical_data/elk_ratesbyage.csv', sep=',')
+        df = pd.read_csv('empirical_data/elk_ratesbyage.csv', sep=',')
         all_ages = np.append([1],df['age'].values)
         all_preg_rate = np.append([0], df['preg_rate'])/26
 
@@ -187,7 +189,7 @@ class WolfElk(Model):
         Returns:
             Probability distribution of elk ages
         """
-        df = pd.read_csv('wolf_elk/empirical_data/elk_ratesbyage.csv', sep=',')
+        df = pd.read_csv('empirical_data/elk_ratesbyage.csv', sep=',')
         all_ages = np.append([1],df['age'].values)
         all_surv_rate = np.append([0.9],df['surv_rate'].values)
 
@@ -212,7 +214,7 @@ class WolfElk(Model):
         Returns:
             Coefficients for polynomial.
         """
-        df = pd.read_csv('wolf_elk/empirical_data/elk_ratesbyage.csv', sep=',')
+        df = pd.read_csv('empirical_data/elk_ratesbyage.csv', sep=',')
         all_ages = np.append([1],df['age'].values)
         all_perc_killed = np.append([50],(df['perc_of_killed'].values)/2)/100
         all_surv_rate = np.append([0.9],df['surv_rate'].values)
@@ -254,7 +256,8 @@ class WolfElk(Model):
                 self.get_wolf_breed_count(),
                 self.schedule.get_breed_count(Elk),
                 self.schedule.get_breed_count(Pack),
-                self.schedule.get_average_kills(Wolf)
+                self.schedule.get_average_kills(Wolf),
+                self.schedule.get_average_age(Elk)
             ]
         )
 
@@ -263,7 +266,8 @@ class WolfElk(Model):
             "wolf":self.get_wolf_breed_count(),
             "elk":  self.schedule.get_breed_count(Elk),
             "pack": self.schedule.get_breed_count(Pack),
-            "average_kills":  self.schedule.get_average_kills(Wolf)
+            "average_kills":  self.schedule.get_average_kills(Wolf),
+            "average_elk_age": self.schedule.get_average_age(Elk)
         }
 
     def run_model(self, step_count=200):

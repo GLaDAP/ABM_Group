@@ -2,6 +2,9 @@ import pandas as pd
 import numpy as np
 from wolf_elk.model import WolfElk
 from matplotlib import pyplot as plt
+import os
+print(os.getcwd(), 'run model')
+
 class Runner():
     """
     Class to run the model given the amount of iterations and optional 
@@ -30,8 +33,8 @@ def get_statistics(dataframe, step_size=200):
     by_row_index = dataframe.groupby(dataframe.index)
     df_means = by_row_index.mean()
     df_std = by_row_index.std()
-    print(df_means)
-    print(df_std)
+    # print(df_means)
+    # print(df_std)
     return df_means, df_std
 
 def plot_mean_and_standard_deviation(df_mean, df_std, step_size=200):
@@ -42,6 +45,7 @@ def plot_mean_and_standard_deviation(df_mean, df_std, step_size=200):
         plt.plot(x, df_mean[col], color='teal', label='Mean of {}'.format(col))
         plt.fill_between(x, df_mean[col]-df_std[col], df_mean[col]+df_std[col], color='powderblue',label='error')
         plt.grid(True)
+        # plt.xticks([round(i/26, 2) for i in range(1, len(df_mean) + 1) if i % 26 == 0])
         plt.legend()
         plt.show()
 
@@ -67,10 +71,11 @@ if __name__ == "__main__":
     """
     parameters = { 
         'initial_elk'   : 200, 
-        'initial_wolves': 20
+        'initial_wolves': 0
     }
     runner = Runner(parameters)
     result_df = runner.run(iterations=2)
     mean, std = get_statistics(result_df)
-    plot_mean_and_standard_deviation(mean, std)
-    # result_df.to_csv('model_result.csv')
+    # plot_mean_and_standard_deviation(mean, std)
+    # result_df.to_csv('model_result_0wolves.csv')
+    # print(result_df)
