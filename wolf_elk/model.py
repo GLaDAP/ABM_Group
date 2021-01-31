@@ -27,8 +27,6 @@ import pandas as pd
 from .agents import Elk, GrassPatch
 from .wolf import Wolf, Pack
 from .schedule import RandomActivationByBreed
-import os
-print(os.getcwd())
 
 
 class WolfElk(Model):
