@@ -56,6 +56,9 @@ Then open your browser to [http://127.0.0.1:8521/](http://127.0.0.1:8521/) and p
 * ``sensititvity.py``: Helper file to perform sensitivity analysis on the model using SALib.
 * ``empirical_data/elk_ratesbyage.csv``: Data-file with elk age rates from Northern Yellowstone park.
 * ``empirical_data/popsize_elk_wolf_YSNorth.csv``: Data file with population sizes for elk and wolves in Yellowstone Park North.
+* ``population data exploration/Population Exploration.ipynb``: Notebook used to analyze data from Yellowstone Park North regarding the Elk and Wolves.
+* ``population data exploration/elk_deathrate_pregrate.csv``: Data-file with elk age rates from Northern Yellowstone park.
+* ``population data exploration/elk_wolves_pop_YSnorth.csv``: Data file with population sizes for elk and wolves in Yellowstone Park North.
 ## Further Reading
 
 Part of the code used in this model is based on the Mesa examples repository found here: [Wolf-Sheep-Example](https://github.com/projectmesa/mesa/tree/master/examples/wolf_sheep)
