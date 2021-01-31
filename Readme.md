@@ -33,6 +33,7 @@ The dependencies are as follows:
 - pandas: to save the results from runs in a csv
 - matplotlib: to plot the results
 - salib: to perform the sensitivity analysis
+- jupyter: to use the data analysis and result notebooks
 ## How to Run
 
 To run the model interactively, run ``mesa runserver`` in this directory. e.g.
